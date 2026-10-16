@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: backend
     dockerfilePath: ./Dockerfile
-    autoDeploy: false
+    autoDeploy: true
     healthCheckPath: /api/health
     envVars:
       - key: ENVIRONMENT
@@ -21,7 +21,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        sync: false
+        value: http://localhost:5173,http://localhost:3000,https://vibecode-ai-five.vercel.app
       - key: AI_PROVIDER_FAMILY
         value: openai_compat
       - key: AI_MODEL

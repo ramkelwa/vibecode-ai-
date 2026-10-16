@@ -26,7 +26,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api"
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = (
+        "http://localhost:5173,http://localhost:3000,"
+        "https://vibecode-ai-five.vercel.app"
+    )
 
     # --- Database ---
     DATABASE_URL: str = "sqlite:///./vibeshield.db"

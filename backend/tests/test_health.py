@@ -11,6 +11,7 @@ from typing import Any, Dict
 from fastapi.testclient import TestClient
 
 from app.api import health as health_module
+from app.core.config import Settings
 
 
 def test_health_ok_with_database(client: TestClient) -> None:
@@ -41,3 +42,24 @@ def test_health_reports_db_unavailable_without_crashing(client: TestClient) -> N
         assert body["features"]["findings"] is False
     finally:
         health_module.engine = original
+
+
+def test_default_cors_origins_include_production_frontend() -> None:
+    settings = Settings(_env_file=None)
+
+    assert "https://vibecode-ai-five.vercel.app" in settings.cors_origin_list
+
+
+def test_production_frontend_cors_preflight(client: TestClient) -> None:
+    origin = "https://vibecode-ai-five.vercel.app"
+    response = client.options(
+        "/api/health",
+        headers={
+            "Origin": origin,
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == origin
