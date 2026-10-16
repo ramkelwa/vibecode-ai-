@@ -1,0 +1,10 @@
+{
+  "name": "vibeshield-e2e-fixture-project",
+  "version": "1.0.0",
+  "description": "Deliberately outdated fixture for dependency_audit E2E testing",
+  "private": true,
+  "dependencies": {
+    "lodash": "4.17.11"
+  },
+  "devDependencies": {}
+}
