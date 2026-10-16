@@ -49,7 +49,12 @@ Copy-Item .env.example .env   # adjust values if needed
 # --- Frontend ---
 cd ..\frontend
 npm install
+Copy-Item .env.example .env   # local backend URL; adjust for deployment
 ```
+
+Both local `.env` files are ignored by Git. Keep provider credentials in
+`backend\.env`; the frontend only needs the backend API origin in
+`frontend\.env` (`VITE_API_BASE_URL`).
 
 ## Run (development)
 
