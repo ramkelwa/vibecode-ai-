@@ -540,8 +540,8 @@ class TestSolvedViolationScan:
             finally:
                 for p in (root, outside):
                     if p.exists():
-                        for child in sorted(p.rglob("*")):
-                            if child.is_file():
+                        for child in sorted(p.rglob("*"), key=lambda path: len(path.parts), reverse=True):
+                            if child.is_symlink() or child.is_file():
                                 child.unlink()
                             elif child.is_dir():
                                 child.rmdir()
@@ -849,4 +849,3 @@ class TestDeprecatedAsyncioRunPython313Plus:
         import sys
         if sys.version_info >= (3, 13):
             _a.run(_a.sleep(0))
-
