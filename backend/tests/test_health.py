@@ -50,6 +50,15 @@ def test_default_cors_origins_include_production_frontend() -> None:
     assert "https://vibecode-ai-five.vercel.app" in settings.cors_origin_list
 
 
+def test_custom_cors_origins_retain_production_frontend() -> None:
+    settings = Settings(_env_file=None, CORS_ORIGINS="https://admin.example.com")
+
+    assert settings.cors_origin_list == [
+        "https://admin.example.com",
+        "https://vibecode-ai-five.vercel.app",
+    ]
+
+
 def test_production_frontend_cors_preflight(client: TestClient) -> None:
     origin = "https://vibecode-ai-five.vercel.app"
     response = client.options(

@@ -95,7 +95,9 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> List[str]:
-        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        configured = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        production_frontend = "https://vibecode-ai-five.vercel.app"
+        return list(dict.fromkeys([*configured, production_frontend]))
 
     @property
     def authorized_project_roots(self) -> List[str]:
