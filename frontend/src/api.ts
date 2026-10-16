@@ -220,10 +220,16 @@ export class ApiError extends Error {
   }
 }
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
+
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let resp: Response
   try {
-    resp = await fetch(path, {
+    resp = await fetch(apiUrl(path), {
       headers: { 'Content-Type': 'application/json' },
       ...init,
     })
@@ -289,8 +295,8 @@ export interface AiExplanation {
 
 /** Download URL helpers for Phase 7 reports (plain GET endpoints). */
 export const reportUrls = (scanId: string) => ({
-  json: `/api/reports/${scanId}/json`,
-  pdf: `/api/reports/${scanId}/pdf`,
+  json: apiUrl(`/api/reports/${scanId}/json`),
+  pdf: apiUrl(`/api/reports/${scanId}/pdf`),
 })
 
 export const api = {

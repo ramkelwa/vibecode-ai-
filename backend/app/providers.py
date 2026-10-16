@@ -302,7 +302,7 @@ class OpenAiCompatProvider(AiProvider):
         self.api_key = api_key
         self.model_hint = model_hint
         self.model_override = model_override
-        self.configured = bool(api_key) and base_url
+        self.configured = bool(api_key and base_url)
 
     def generate_text(
         self,
@@ -370,7 +370,7 @@ class GlmProvider(AiProvider):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.model_hint = model_hint
-        self.configured = bool(api_key) and base_url
+        self.configured = bool(api_key and base_url)
 
     def generate_text(
         self,
@@ -543,12 +543,18 @@ def build_provider() -> AiProvider:
 def provider_status() -> Dict[str, Any]:
     """Public (non-secret) status of the configured provider."""
     p = build_provider()
+    enabled = p.family != "offline" and bool(p.configured)
     return {
         "family": p.family,
         "configured": p.configured,
         "model_hint": p.model_hint,
-        "enabled": p.family != "offline",
+        "enabled": enabled,
         "notes": (
+            "Provider is ready."
+            if enabled
+            else "Provider is not configured: set a valid AI_API_KEY and base URL."
+            if p.family != "offline"
+            else
             "AI is disabled by default. To enable, set AI_PROVIDER_FAMILY to "
             "'openai_compat' (OpenRouter and other OpenAI-compatible endpoints) or "
             "'glm' (GLM-family endpoints), and set AI_API_KEY to a valid key. Keys are "

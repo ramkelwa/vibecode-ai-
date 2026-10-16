@@ -77,6 +77,56 @@ Or run the whole stack:
 docker compose up --build
 ```
 
+## CI/CD and deployments
+
+The GitHub Actions workflow at `.github/workflows/ci-cd.yml` runs backend tests,
+frontend tests/build, and a backend Docker build on pull requests and pushes to
+`main`. After a successful push to `main`, it deploys the backend to Render and
+the frontend to Vercel when the required repository settings are configured.
+Deployment steps are skipped with a workflow notice until those settings exist.
+
+### Configure Render
+
+1. Create a Render Blueprint from this repository and select `render.yaml`.
+   The blueprint creates the backend web service and PostgreSQL database.
+2. Set `CORS_ORIGINS` in the Render service to the exact Vercel production
+   origin, such as `https://your-project.vercel.app` (add any custom origin
+   separated by commas).
+3. Set `AI_API_KEY` in the Render dashboard if AI explanations should be
+   enabled. Keep credentials in Render's environment settings, never in Git.
+   Rotate any credential that was pasted into chat or added to a tracked file.
+4. Create a Render Deploy Hook for the service and save its URL as the
+   `RENDER_DEPLOY_HOOK` GitHub Actions repository secret.
+
+### Configure Vercel
+
+1. Import the repository into Vercel and set the project Root Directory to
+   `frontend`.
+2. Add these GitHub Actions repository secrets:
+   `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
+3. Add the GitHub Actions repository variable `VITE_API_BASE_URL` with the
+   Render service origin, for example `https://your-service.onrender.com`
+   (no trailing slash).
+
+Once configured, each successful push to `main` triggers both deployments.
+Vercel previews and pull requests run validation only.
+
+### Push local commits automatically
+
+This checkout is configured to push each explicit Git commit to its upstream
+branch using `.githooks/post-commit`. This does not commit file saves. To enable
+the hook in another clone, run:
+
+```powershell
+git config core.hooksPath .githooks
+```
+
+To disable automatic pushes in this checkout:
+
+```powershell
+git config --unset core.hooksPath
+```
+
 ## Tests
 
 ```powershell
@@ -88,7 +138,7 @@ cd ..\frontend
 npm run build
 ```
 
-Current status: **172 backend tests passing, 1 skipped** (platform-specific symlink test; health incl. DB-outage behavior, persistence round-trips, URL/redirect/header/cookie modules via controlled stubs, scans API incl. validation errors and stage tracking, Phase 3 HTML/JS/API modules via controlled fixtures, Phase 4 manifest/advisory/audit-tooling tests via fixtures + mocked subprocess calls, Phase 5 normalization/dedup/correlation/risk tests, Phase 7 provider/report/AI-explanation tests) and **frontend 27 vitest tests passing + `tsc -b && vite build` clean**.
+Current status: **175 backend tests passing, 1 skipped** (platform-specific symlink test; health incl. DB-outage behavior, persistence round-trips, URL/redirect/header/cookie modules via controlled stubs, scans API incl. validation errors and stage tracking, Phase 3 HTML/JS/API modules via controlled fixtures, Phase 4 manifest/advisory/audit-tooling tests via fixtures + mocked subprocess calls, Phase 5 normalization/dedup/correlation/risk tests, Phase 7 provider/report/AI-explanation tests) and **frontend 27 vitest tests passing + `tsc -b && vite build` clean**.
 
 ## What is implemented (continued)
 

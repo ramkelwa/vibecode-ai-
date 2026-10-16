@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from typing import Generator
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import DateTime, JSON, Text, create_engine, event, inspect, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import settings
@@ -58,3 +59,32 @@ def init_db() -> None:
     from app import models  # noqa: F401  (ensures mappers are configured)
 
     Base.metadata.create_all(bind=engine)
+    _upgrade_schema(engine)
+
+
+def _upgrade_schema(bind: Engine) -> None:
+    """Add columns introduced after the initial SQLite schema was created."""
+    additions = {
+        "scans": {
+            "artifacts": (JSON(), "NOT NULL DEFAULT '{}'"),
+        },
+        "findings": {
+            "ai_explanation": (Text(), ""),
+            "ai_error": (Text(), ""),
+            "ai_provider": (Text(), ""),
+            "ai_generated_at": (DateTime(timezone=True), ""),
+        },
+    }
+    with bind.begin() as connection:
+        schema = inspect(connection)
+        for table, columns in additions.items():
+            existing = {column["name"] for column in schema.get_columns(table)}
+            for name, (column_type, constraints) in columns.items():
+                if name not in existing:
+                    sql_type = column_type.compile(dialect=bind.dialect)
+                    connection.execute(
+                        text(
+                            f'ALTER TABLE "{table}" ADD COLUMN "{name}" '
+                            f"{sql_type} {constraints}"
+                        )
+                    )

@@ -63,6 +63,36 @@ def test_ai_provider_status_offline_by_default(client: TestClient) -> None:
     assert "AI is disabled by default" in body["notes"]
 
 
+def test_ai_provider_status_not_enabled_without_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.core.config import settings
+    from app.providers import provider_status
+
+    monkeypatch.setattr(settings, "AI_PROVIDER_FAMILY", "openai_compat")
+    monkeypatch.setattr(settings, "AI_API_KEY", "")
+    monkeypatch.setattr(settings, "AI_PROVIDER_BASE_URL", "https://openrouter.ai/api/v1")
+
+    status = provider_status()
+
+    assert status["family"] == "openai_compat"
+    assert status["configured"] is False
+    assert status["enabled"] is False
+    assert "AI_API_KEY" in status["notes"]
+
+
+def test_ai_provider_status_configured_is_boolean(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.core.config import settings
+    from app.providers import provider_status
+
+    monkeypatch.setattr(settings, "AI_PROVIDER_FAMILY", "openai_compat")
+    monkeypatch.setattr(settings, "AI_API_KEY", "configured-key")
+    monkeypatch.setattr(settings, "AI_PROVIDER_BASE_URL", "https://openrouter.ai/api/v1")
+
+    status = provider_status()
+
+    assert status["configured"] is True
+    assert status["enabled"] is True
+
+
 def test_ai_provider_status_never_exposes_keys(client: TestClient) -> None:
     resp = client.get("/api/ai-provider/status")
     body = resp.json()
@@ -261,7 +291,7 @@ def test_explain_finding_with_no_ai(client: TestClient) -> None:
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["label"] == "AI-generated interpretation"
+    assert body["label"] == "AI interpretation unavailable"
     assert body["provider"] == "offline"
     assert body["model"] == "offline"
     assert body["text"] == ""

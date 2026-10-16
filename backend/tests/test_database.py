@@ -6,9 +6,10 @@ from datetime import datetime, timezone
 from typing import Generator
 
 import pytest
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
-from app.core.database import SessionLocal
+from app.core.database import SessionLocal, _upgrade_schema
 from app.models import Finding, Scan
 
 
@@ -62,3 +63,32 @@ def test_timestamps_are_utc(db: Session) -> None:
     utc_now = datetime.now(timezone.utc)
     delta = abs((utc_now.replace(tzinfo=None) - scan.created_at.replace(tzinfo=None)).total_seconds())
     assert delta < 60
+
+
+def test_upgrade_schema_adds_new_columns_without_losing_rows() -> None:
+    legacy_engine = create_engine("sqlite://")
+    try:
+        with legacy_engine.begin() as connection:
+            connection.execute(text("CREATE TABLE scans (id TEXT PRIMARY KEY, target_url TEXT)"))
+            connection.execute(text("CREATE TABLE findings (id TEXT PRIMARY KEY)"))
+            connection.execute(text("INSERT INTO scans (id, target_url) VALUES ('scan-1', 'https://example.com')"))
+            connection.execute(text("INSERT INTO findings (id) VALUES ('finding-1')"))
+
+        _upgrade_schema(legacy_engine)
+        _upgrade_schema(legacy_engine)
+
+        with legacy_engine.connect() as connection:
+            scan = connection.execute(
+                text("SELECT id, target_url, artifacts FROM scans WHERE id = 'scan-1'")
+            ).one()
+            finding = connection.execute(
+                text(
+                    "SELECT id, ai_explanation, ai_error, ai_provider, ai_generated_at "
+                    "FROM findings WHERE id = 'finding-1'"
+                )
+            ).one()
+
+        assert scan == ("scan-1", "https://example.com", "{}")
+        assert finding == ("finding-1", None, None, None, None)
+    finally:
+        legacy_engine.dispose()
