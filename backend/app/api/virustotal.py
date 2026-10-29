@@ -18,8 +18,10 @@ Safety properties:
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import re
 
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile
 from pydantic import BaseModel, Field, field_validator
 
 from app.core.logging import get_logger
@@ -29,6 +31,8 @@ from app.services import virustotal as vt
 logger = get_logger("api.virustotal")
 
 router = APIRouter(prefix="/virustotal", tags=["virustotal"])
+MAX_FILE_SIZE_BYTES = 32 * 1024 * 1024
+_SHA256_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 
 
 class VirusTotalScanRequest(BaseModel):
@@ -124,6 +128,76 @@ async def get_report(url: str = Query(min_length=1, max_length=2048)) -> dict:
         raise HTTPException(status_code=502, detail=_safe_detail(exc)) from exc
     except vt.VirusTotalBadUpstreamResponse as exc:
         raise HTTPException(status_code=502, detail=_safe_detail(exc)) from exc
+    return _serialize(data)
+
+
+@router.get("/file-report/{sha256}")
+async def get_file_report(sha256: str) -> dict:
+    """Look up a public file report by SHA-256; file content is not uploaded."""
+    if not _SHA256_RE.fullmatch(sha256):
+        raise HTTPException(status_code=400, detail="A valid SHA-256 hash is required.")
+    if not vt.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="VirusTotal is not configured on this server (missing API key).",
+        )
+    digest = sha256.lower()
+    try:
+        data = await vt.get_file_report(digest)
+    except vt.VirusTotalNotFoundError:
+        return _serialize(
+            vt.VirustotalResult(
+                status="not_found",
+                object_type="file",
+                sha256=digest,
+                report_url=vt.gui_file_report_url(digest),
+                message="VirusTotal has no existing report for this file. Submit it to request an analysis.",
+            )
+        )
+    except vt.VirusTotalRateLimited as exc:
+        return _rate_limited(exc)
+    except vt.VirusTotalUpstreamError as exc:
+        raise HTTPException(status_code=502, detail=_safe_detail(exc)) from exc
+    except vt.VirusTotalBadUpstreamResponse as exc:
+        raise HTTPException(status_code=502, detail=_safe_detail(exc)) from exc
+    return _serialize(data)
+
+
+@router.post("/files/scan")
+async def submit_file_scan(file: UploadFile = File(...)) -> dict:
+    """Submit a file to VirusTotal after the user explicitly confirms sharing."""
+    if not vt.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="VirusTotal is not configured on this server (missing API key).",
+        )
+    filename = (file.filename or "").replace("\\", "/").rsplit("/", 1)[-1].strip()
+    if (
+        not filename
+        or len(filename) > 255
+        or any(ord(char) < 32 or ord(char) == 127 for char in filename)
+    ):
+        raise HTTPException(status_code=400, detail="The uploaded file needs a valid filename.")
+    if file.size is not None and file.size > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="VirusTotal file submissions are limited to 32 MiB.")
+    content = await file.read(MAX_FILE_SIZE_BYTES + 1)
+    if not content:
+        raise HTTPException(status_code=400, detail="The uploaded file is empty.")
+    if len(content) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="VirusTotal file submissions are limited to 32 MiB.")
+    digest = hashlib.sha256(content).hexdigest()
+    try:
+        data = await vt.submit_file_for_analysis(filename, content, digest)
+    except vt.VirusTotalRateLimited as exc:
+        return _rate_limited(exc)
+    except vt.VirusTotalNotConfigured:
+        raise HTTPException(status_code=503, detail="VirusTotal is not configured on this server (missing API key).")
+    except vt.VirusTotalUpstreamError as exc:
+        raise HTTPException(status_code=502, detail=_safe_detail(exc)) from exc
+    except vt.VirusTotalBadUpstreamResponse as exc:
+        raise HTTPException(status_code=502, detail=_safe_detail(exc)) from exc
+    finally:
+        await file.close()
     return _serialize(data)
 
 

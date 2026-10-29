@@ -59,8 +59,18 @@ const isVtGuiLink = (url: string): boolean =>
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-export default function VirusTotalPanel({ configured }: { configured: boolean | null }) {
-  const [url, setUrl] = useState('')
+export default function VirusTotalPanel({
+  configured,
+  initialUrl = '',
+  autoLookup = false,
+  autoLookupKey = '',
+}: {
+  configured: boolean | null
+  initialUrl?: string
+  autoLookup?: boolean
+  autoLookupKey?: string
+}) {
+  const [url, setUrl] = useState(initialUrl)
   const [phase, setPhase] = useState<Phase>('idle')
   const [result, setResult] = useState<VirustotalResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -70,6 +80,7 @@ export default function VirusTotalPanel({ configured }: { configured: boolean | 
   // action (new URL / new scan) starts, so no stale background polling.
   const aliveRef = useRef(true)
   const runIdRef = useRef(0)
+  const lastAutoLookupRef = useRef('')
   useEffect(() => {
     aliveRef.current = true
     return () => {
@@ -94,12 +105,12 @@ export default function VirusTotalPanel({ configured }: { configured: boolean | 
   const errorMessage = (e: unknown): string =>
     e instanceof ApiError ? e.detail : e instanceof Error ? e.message : String(e)
 
-  const lookupReport = useCallback(async () => {
+  const lookupReport = useCallback(async (targetUrl = url) => {
     reset()
     const run = runIdRef.current
     setPhase('checking')
     try {
-      const r = await api.virustotalReport(url)
+      const r = await api.virustotalReport(targetUrl)
       if (!aliveRef.current || runIdRef.current !== run) return
       setResult(r)
       setPhase(r.status === 'not_found' ? 'not_found' : 'found')
@@ -109,6 +120,15 @@ export default function VirusTotalPanel({ configured }: { configured: boolean | 
       setPhase('check_error')
     }
   }, [reset, url])
+
+  useEffect(() => {
+    if (!autoLookup || configured !== true || !initialUrl) return
+    const lookupKey = autoLookupKey || initialUrl
+    if (lastAutoLookupRef.current === lookupKey) return
+    lastAutoLookupRef.current = lookupKey
+    setUrl(initialUrl)
+    void lookupReport(initialUrl)
+  }, [autoLookup, autoLookupKey, configured, initialUrl, lookupReport])
 
   const pollAnalysis = useCallback(
     async (analysisId: string, run: number) => {
@@ -301,7 +321,10 @@ export default function VirusTotalPanel({ configured }: { configured: boolean | 
 
       {error && (phase === 'check_error' || phase === 'submit_error') && (
         <div className="mt-3">
-          <ErrorState message={error} onRetry={phase === 'check_error' ? lookupReport : undefined} />
+          <ErrorState
+            message={error}
+            onRetry={phase === 'check_error' ? () => lookupReport() : undefined}
+          />
         </div>
       )}
 

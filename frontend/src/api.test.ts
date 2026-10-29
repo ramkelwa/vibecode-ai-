@@ -64,4 +64,14 @@ describe('api client', () => {
       expect.objectContaining({ method: 'POST' }),
     )
   })
+
+  it('sends file uploads as multipart data without setting a JSON content type', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse({ status: 'queued' }))
+    vi.stubGlobal('fetch', fetchMock)
+    await api.virustotalFileScan(new File(['sample'], 'sample.apk'))
+    const options = fetchMock.mock.calls[0]?.[1]
+    expect(options?.method).toBe('POST')
+    expect(options?.body).toBeInstanceOf(FormData)
+    expect(options?.headers).toEqual({})
+  })
 })

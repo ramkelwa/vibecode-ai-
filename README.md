@@ -252,19 +252,21 @@ Sidebar-driven layout with seven views; plain Tailwind + `lucide-react` icons (n
 | View | Data source |
 |---|---|
 | Overview | aggregate counts computed live from `GET /api/scans` + the newest completed scan's findings; severity distribution bars |
-| New scan | `POST /api/scans` and `POST /api/scans/project`; validates URL/path format before submit, shows scope + authorization requirements, displays the real returned scan ID, prevents duplicate submissions while pending, surfaces actual API validation errors, polling of real scan status, module-stage progress with partial-failure notes, and cancel via `POST /{id}/cancel` |
+| New scan | `POST /api/scans` and `POST /api/scans/project`; validates URL/path format before submit, shows scope + authorization requirements, displays the real returned scan ID, prevents duplicate submissions while pending, surfaces actual API validation errors, polling of real scan status, module-stage progress with partial-failure notes, and cancel via `POST /{id}/cancel`. Website scans can optionally check VirusTotal after a separate URL-sharing confirmation. |
 | Scan history | `GET /api/scans` with loading/empty/error-retry states |
 | Findings explorer | search, severity/confidence/category filters, sorting, pagination, detail panel (redacted evidence as stored, source module, affected asset, remediation, verification status) |
 | Endpoint & script inventory | real `GET /api/scans/{id}/artifacts` (endpoints, inline scripts, external JS assets with digests) |
 | Configuration & dependencies | header/cookie findings + Phase 4 project artifact tool-run records |
 | Report | Phase 5 `risk-summary` + `correlations` endpoints — deterministic engine output with formula and limitations |
-| VirusTotal threat intelligence | Optional third-party URL report lookup and user-confirmed analysis submission; results stay separate from VibeShield findings |
+| VirusTotal threat intelligence | Optional third-party URL report lookup and user-confirmed analysis submission; results stay separate from VibeShield findings. New Scan also supports local SHA-256 lookup for files/APKs and a separately confirmed VirusTotal upload. |
 
 Data-integrity rules honored: every metric derives from real API responses; nothing is simulated, no dashboard totals are hardcoded; missing data renders as unavailable/empty (e.g. "artifact not recorded for this scan"); DB-unavailable state disables new scans and says so honestly. The API client is centralized in `src/api.ts` with typed models and a typed `ApiError` carrying HTTP status (network failures map to status 0 and are never confused with HTTP responses). No secrets or server credentials exist client-side.
 
 VirusTotal is an optional integration configured on the backend with `VIRUSTOTAL_API_KEY` (see `backend/.env.example`). The key is never sent to the browser. Looking up an existing report also sends the complete URL, including query parameters, to VirusTotal; submitting a new analysis requires confirmation and may make the URL available through VirusTotal. Do not use confidential URLs or URLs containing secrets. Private or non-public URL destinations are rejected. VirusTotal data is third-party intelligence, not a VibeShield scan result, and zero detections do not prove a site is safe.
 
-**Frontend testing (vitest + Testing Library, jsdom):** 42 tests across 5 files — API client success/typed-error/network-failure/cancel behavior; new-scan flow (URL validation hint, real submit + scan-ID display, duplicate-submit prevention with pending state, backend error surfacing, scope notices, DB-down disable); findings explorer (rendering, severity/category filters, search, pagination movement, no-results and empty states, error+retry, detail panel with evidence/status/remediation, severity sorting); scan history (loading/error-retry/empty/selection); VirusTotal lookup/submission, polling, error states, and stale-result handling.
+For website scans, the New Scan flow asks before sending the full URL to VirusTotal for a read-only public-report lookup; if no report exists, a second confirmation is required before requesting a new analysis. For files and APKs, the browser computes SHA-256 locally and checks only that hash first. The file itself is uploaded only after an explicit confirmation, is limited to 32 MiB, and may be retained/shared by VirusTotal. Binary files are not currently analyzed by VibeShield itself; file verdicts shown in this flow come only from VirusTotal. Avoid confidential files and URLs.
+
+**Frontend testing (vitest + Testing Library, jsdom):** tests cover API client success/typed-error/network-failure/cancel and multipart uploads; new-scan URL-sharing consent; findings explorer; scan history; VirusTotal URL lookup/submission/polling; and file hash lookup, explicit upload confirmation, and report links.
 
 Run with: `npm test` (from `vibeshield-ai/frontend`).
 

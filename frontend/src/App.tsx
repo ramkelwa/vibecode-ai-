@@ -19,6 +19,7 @@ import InventoryPanel from './components/InventoryPanel'
 import ConfigFindings from './components/ConfigFindings'
 import ReportSection from './components/ReportSection'
 import VirusTotalPanel from './components/VirusTotalPanel'
+import VirusTotalFilePanel from './components/VirusTotalFilePanel'
 import { ErrorState } from './components/ui'
 
 const VIEW_TITLES: Record<ViewKey, string> = {
@@ -46,6 +47,7 @@ export default function App() {
 
   // Selected-scan data.
   const [scanId, setScanId] = useState<string | null>(null)
+  const [virusTotalTarget, setVirusTotalTarget] = useState<{ scanId: string; url: string } | null>(null)
   const [detail, setDetail] = useState<ScanDetailData | null>(null)
   const [artifacts, setArtifacts] = useState<Artifacts | null>(null)
   const [riskSummary, setRiskSummary] = useState<RiskSummary | null>(null)
@@ -302,12 +304,28 @@ export default function App() {
           <div className="space-y-4">
             <NewScanForm
               allowedToScan={dbUp}
+              virustotalConfigured={health?.features.virustotal ?? false}
               onError={() => undefined}
-              onSubmitted={(scan) => {
+              onSubmitted={(scan, kind, checkVirusTotal) => {
                 setScanId(scan.id)
+                setVirusTotalTarget(
+                  kind === 'website' && checkVirusTotal
+                    ? { scanId: scan.id, url: scan.target_url }
+                    : null,
+                )
                 refreshScans()
               }}
             />
+            {virusTotalTarget && (
+              <VirusTotalPanel
+                key={virusTotalTarget.scanId}
+                configured={health?.features.virustotal ?? null}
+                initialUrl={virusTotalTarget.url}
+                autoLookup
+                autoLookupKey={virusTotalTarget.scanId}
+              />
+            )}
+            <VirusTotalFilePanel configured={health?.features.virustotal ?? null} />
             <ScanDetail
               detail={detail}
               onScanUpdated={refreshScans}

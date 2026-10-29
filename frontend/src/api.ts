@@ -281,8 +281,10 @@ export type VirustotalStatus = 'queued' | 'pending' | 'completed' | 'failed' | '
 export interface VirustotalResult {
   source: 'virustotal'
   status: VirustotalStatus
+  object_type?: 'url' | 'file'
   analysis_id: string | null
   url: string | null
+  sha256?: string | null
   last_analysis_date: string | null
   stats: VirustotalStats | null
   engines_reporting: number | null
@@ -373,6 +375,19 @@ export const api = {
   /** VirusTotal: poll the status of a submitted analysis. */
   virustotalAnalysis: (analysisId: string) =>
     request<VirustotalResult>(`/api/virustotal/analysis/${encodeURIComponent(analysisId)}`),
+  /** VirusTotal: look up a file by its locally computed SHA-256 (no file upload). */
+  virustotalFileReport: (sha256: string) =>
+    request<VirustotalResult>(`/api/virustotal/file-report/${encodeURIComponent(sha256)}`),
+  /** VirusTotal: upload a file after explicit user consent. */
+  virustotalFileScan: (file: File) => {
+    const body = new FormData()
+    body.append('file', file, file.name)
+    return request<VirustotalResult>('/api/virustotal/files/scan', {
+      method: 'POST',
+      headers: {},
+      body,
+    })
+  },
   /** Phase 7: request an AI explanation for one finding (optional action). */
   explainFinding: (scanId: string, findingId: string) =>
     request<AiExplanation>(`/api/ai-provider/explain/${scanId}`, {

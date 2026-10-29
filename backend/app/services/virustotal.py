@@ -17,8 +17,10 @@ This service is a thin, defensive client over the official VirusTotal API v3:
 
 Official endpoints used (VirusTotal API v3 documentation):
 - POST /urls                  submit a URL for analysis (URL form-encoded)
+- POST /files                 submit a user-confirmed file for analysis (multipart)
 - GET  /analyses/{id}         retrieve a submitted analysis
 - GET  /urls/{url_id}         retrieve an existing URL report
+- GET  /files/{sha256}        retrieve an existing file report by SHA-256
   where url_id is the URL base64 (urlsafe, unpadded) encoded per official docs.
 
 Assumption about account permissions: a standard VirusTotal API key can submit
@@ -35,8 +37,9 @@ from __future__ import annotations
 import asyncio
 import base64
 import hashlib
+import re
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import httpx
 from pydantic import BaseModel, Field
@@ -99,8 +102,10 @@ class VirustotalResult(BaseModel):
 
     source: str = "virustotal"
     status: str  # queued | pending | completed | failed
+    object_type: str = "url"
     analysis_id: Optional[str] = None
     url: Optional[str] = None  # as safe to echo back to the requesting user
+    sha256: Optional[str] = None
     last_analysis_date: Optional[str] = None  # ISO 8601
     stats: Optional[VirustotalStats] = None
     # Total engines that actually reported. Only computed when the primary
@@ -217,6 +222,7 @@ async def _request(
     *,
     allow_retry: bool,
     data: Optional[Dict[str, str]] = None,
+    files: Optional[Dict[str, Tuple[str, bytes, str]]] = None,
 ) -> httpx.Response:
     """Perform one API call with safe error mapping and bounded retry (GET only)."""
     if not is_configured():
@@ -227,9 +233,12 @@ async def _request(
     for attempt in range(attempts):
         try:
             async with _create_client() as client:
-                resp = await client.request(
-                    method, url, headers=_headers(), data=data
-                )
+                request_kwargs: Dict[str, Any] = {"headers": _headers()}
+                if data is not None:
+                    request_kwargs["data"] = data
+                if files is not None:
+                    request_kwargs["files"] = files
+                resp = await client.request(method, url, **request_kwargs)
             if 200 <= resp.status_code < 300:
                 return resp
             retry_after = resp.headers.get(
@@ -379,9 +388,24 @@ async def get_analysis(analysis_id: str) -> VirustotalResult:
         stats=normalized[0] if normalized and status == "completed" else None,
         engines_reporting=normalized[1] if normalized and status == "completed" else None,
     )
-    if status == "completed" and isinstance(data.get("meta"), dict):
-        url_info = data["meta"].get("url_info")
-        if isinstance(url_info, dict) and isinstance(url_info.get("id"), str):
+    meta = data.get("meta")
+    if isinstance(meta, dict):
+        file_info = meta.get("file_info")
+        if isinstance(file_info, dict) and isinstance(file_info.get("sha256"), str):
+            try:
+                digest = _validate_sha256(file_info["sha256"])
+            except VirusTotalBadUpstreamResponse:
+                digest = ""
+            if digest:
+                result.object_type = "file"
+                result.sha256 = digest
+                result.report_url = gui_file_report_url(digest)
+        url_info = meta.get("url_info")
+        if (
+            result.object_type == "url"
+            and isinstance(url_info, dict)
+            and isinstance(url_info.get("id"), str)
+        ):
             result.report_url = f"https://www.virustotal.com/gui/url/{url_info['id']}"
     return result
 
@@ -408,3 +432,78 @@ async def get_url_report(url: str) -> VirustotalResult:
         report_url=gui_report_url(url),
     )
     return result
+
+
+def _validate_sha256(sha256: str) -> str:
+    value = sha256.strip().lower()
+    if not re.fullmatch(r"[a-f0-9]{64}", value):
+        raise VirusTotalBadUpstreamResponse("invalid SHA-256 hash")
+    return value
+
+
+def gui_file_report_url(sha256: str) -> str:
+    return f"https://www.virustotal.com/gui/file/{_validate_sha256(sha256)}"
+
+
+async def get_file_report(sha256: str) -> VirustotalResult:
+    """GET /files/{sha256} — look up an existing public file report."""
+    digest = _validate_sha256(sha256)
+    resp = await _request("GET", f"/files/{digest}", allow_retry=True)
+    data = _require_shape(_parse_json(resp))
+    attrs = data.get("attributes")
+    if not isinstance(attrs, dict):
+        raise VirusTotalBadUpstreamResponse("unexpected response structure from VirusTotal")
+    normalized = _normalize_stats(attrs.get("last_analysis_stats"))
+    return VirustotalResult(
+        status="completed",
+        object_type="file",
+        sha256=digest,
+        last_analysis_date=_epoch_to_iso(attrs.get("last_analysis_date")),
+        stats=normalized[0] if normalized else None,
+        engines_reporting=normalized[1] if normalized else None,
+        report_url=gui_file_report_url(digest),
+    )
+
+
+async def submit_file_for_analysis(
+    filename: str, content: bytes, sha256: str
+) -> VirustotalResult:
+    """POST /files — submit a file only after explicit user consent."""
+    digest = _validate_sha256(sha256)
+    if hashlib.sha256(content).hexdigest() != digest:
+        raise VirusTotalBadUpstreamResponse("file hash does not match uploaded content")
+    identifier = f"file:{digest}"
+    existing = submission_guard.check_and_record(identifier)
+    if existing:
+        return VirustotalResult(
+            status="queued",
+            object_type="file",
+            analysis_id=existing,
+            sha256=digest,
+            report_url=gui_file_report_url(digest),
+            message="A recent submission for this file was reused (deduplicated); analysis may already be queued.",
+        )
+    try:
+        resp = await _request(
+            "POST",
+            "/files",
+            allow_retry=False,
+            files={"file": (filename, content, "application/octet-stream")},
+        )
+        body = _parse_json(resp)
+    except Exception:
+        submission_guard.release_last()
+        raise
+    data = _require_shape(body)
+    analysis_id = data.get("id")
+    if not isinstance(analysis_id, str) or not analysis_id:
+        raise VirusTotalBadUpstreamResponse("unexpected response structure from VirusTotal")
+    submission_guard.remember(identifier, analysis_id)
+    return VirustotalResult(
+        status="queued",
+        object_type="file",
+        analysis_id=analysis_id,
+        sha256=digest,
+        report_url=gui_file_report_url(digest),
+        message="File submitted successfully for analysis.",
+    )

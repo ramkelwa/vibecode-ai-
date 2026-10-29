@@ -45,6 +45,46 @@ describe('NewScanForm', () => {
     expect(await screen.findByTestId('submitted-scan-id')).toHaveTextContent('abc123def456')
   })
 
+  it('asks before checking a website URL with VirusTotal and allows VibeShield-only scans', async () => {
+    stubFetchCreate(scan)
+    const onSubmitted = vi.fn()
+    render(
+      <NewScanForm
+        allowedToScan
+        virustotalConfigured
+        onError={() => undefined}
+        onSubmitted={onSubmitted}
+      />,
+    )
+    await userEvent.type(await screen.findByLabelText(/Target URL/i), 'https://target.example.com')
+    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
+    expect(await screen.findByTestId('vt-url-consent')).toBeInTheDocument()
+    expect(screen.getByText(/complete URL, including query parameters/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /VibeShield only/i }))
+    await screen.findByTestId('submitted-scan-id')
+    expect(onSubmitted).toHaveBeenCalledWith(scan, 'website', false)
+  })
+
+  it('starts the requested URL report check only after the user opts in', async () => {
+    stubFetchCreate(scan)
+    const onSubmitted = vi.fn()
+    render(
+      <NewScanForm
+        allowedToScan
+        virustotalConfigured
+        onError={() => undefined}
+        onSubmitted={onSubmitted}
+      />,
+    )
+    await userEvent.type(await screen.findByLabelText(/Target URL/i), 'https://target.example.com')
+    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Start VibeShield \+ VirusTotal check/i }),
+    )
+    await screen.findByTestId('submitted-scan-id')
+    expect(onSubmitted).toHaveBeenCalledWith(scan, 'website', true)
+  })
+
   it('prevents duplicate submissions while a request is pending', async () => {
     let resolve!: (r: Response) => void
     const fetchMock = vi.fn().mockImplementation(

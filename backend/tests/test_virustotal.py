@@ -8,6 +8,7 @@ method is monkeypatched so tests run offline and deterministically
 from __future__ import annotations
 
 import ipaddress
+import hashlib
 from typing import Any, Dict, Optional
 
 import httpx
@@ -51,7 +52,13 @@ class FakeHttp:
 
     def request(self, method: str, url: str, **kwargs: Any) -> FakeResponse:
         self.calls.append(
-            {"method": method, "url": url, "headers": kwargs.get("headers"), "data": kwargs.get("data")}
+            {
+                "method": method,
+                "url": url,
+                "headers": kwargs.get("headers"),
+                "data": kwargs.get("data"),
+                "files": kwargs.get("files"),
+            }
         )
         if not self.script:
             raise AssertionError("unexpected extra HTTP call in test")
@@ -376,6 +383,65 @@ async def test_report_404_is_not_found(monkeypatch: pytest.MonkeyPatch, fake_key
         await vt.get_url_report("https://example.com/")
 
 
+async def test_file_report_uses_sha256_and_normalizes_stats(monkeypatch: pytest.MonkeyPatch, fake_key) -> None:
+    digest = "a" * 64
+    fake = FakeHttp()
+    fake.queue(
+        FakeResponse(
+            200,
+            {
+                "data": {
+                    "type": "file",
+                    "attributes": {
+                        "last_analysis_stats": {
+                            "malicious": 1,
+                            "suspicious": 0,
+                            "harmless": 20,
+                            "undetected": 10,
+                            "timeout": 0,
+                        },
+                        "last_analysis_date": 1700000000,
+                    },
+                }
+            },
+        )
+    )
+    fake.install(monkeypatch)
+    result = await vt.get_file_report(digest)
+    assert result.object_type == "file"
+    assert result.sha256 == digest
+    assert result.stats.malicious == 1
+    assert fake.calls[0]["url"].endswith("/files/" + digest)
+
+
+async def test_file_submission_uses_multipart_and_sha256_dedup(
+    monkeypatch: pytest.MonkeyPatch, fake_key
+) -> None:
+    content = b"sample-apk"
+    digest = hashlib.sha256(content).hexdigest()
+    fake = FakeHttp()
+    fake.queue(FakeResponse(200, _submission_body("file-analysis-id")))
+    fake.install(monkeypatch)
+    first = await vt.submit_file_for_analysis("sample.apk", content, digest)
+    second = await vt.submit_file_for_analysis("sample.apk", content, digest)
+    assert first.object_type == "file"
+    assert first.sha256 == digest
+    assert first.analysis_id == "file-analysis-id"
+    assert second.analysis_id == first.analysis_id
+    assert len(fake.calls) == 1
+    assert fake.calls[0]["url"].endswith("/files")
+    assert fake.calls[0]["files"]["file"] == (
+        "sample.apk",
+        b"sample-apk",
+        "application/octet-stream",
+    )
+
+
+async def test_file_report_rejects_malformed_hash(monkeypatch: pytest.MonkeyPatch, fake_key) -> None:
+    with pytest.raises(vt.VirusTotalBadUpstreamResponse):
+        await vt.get_file_report("not-a-hash")
+
+
 async def test_dedup_reuses_recent_submission(monkeypatch: pytest.MonkeyPatch, fake_key) -> None:
     fake = FakeHttp()
     fake.queue(FakeResponse(200, _submission_body("first-id")))
@@ -425,15 +491,9 @@ def test_route_scan_success_and_key_never_exposed(
     path (same isolation pattern the rest of the suite uses).
     """
     _mock_dns(monkeypatch)
-    sent: list[Dict[str, Any]] = []
-
-    async def request(self_client, method, url, **kwargs):
-        sent.append({"headers": kwargs.get("headers"), "url": url})
-        return FakeResponse(200, _submission_body("hexid123"))
-
-    monkeypatch.setattr(
-        "app.services.virustotal.httpx.AsyncClient.request", request
-    )
+    fake = FakeHttp()
+    fake.queue(FakeResponse(200, _submission_body("hexid123")))
+    fake.install(monkeypatch)
     resp = client.post("/api/virustotal/scan", json={"url": "https://example.com/"})
     assert resp.status_code == 200
     assert resp.json()["status"] == "queued"
@@ -441,7 +501,7 @@ def test_route_scan_success_and_key_never_exposed(
     # The API key never reaches any HTTP response body.
     assert FAKE_KEY not in resp.text
     # ...and the outbound request did carry it, server-side only.
-    assert sent and sent[0]["headers"]["x-apikey"] == FAKE_KEY
+    assert fake.calls and fake.calls[0]["headers"]["x-apikey"] == FAKE_KEY
 
 
 def test_route_scan_rejects_internal_url(client, monkeypatch: pytest.MonkeyPatch, fake_key) -> None:
@@ -520,6 +580,50 @@ def test_route_report_success_and_not_found(client, monkeypatch: pytest.MonkeyPa
     missing = client.get("/api/virustotal/report", params={"url": "https://example.org/"})
     assert missing.status_code == 200
     assert missing.json()["status"] == "not_found"
+
+
+def test_route_file_report_and_file_upload(client, monkeypatch: pytest.MonkeyPatch, fake_key) -> None:
+    content = b"apk test content"
+    digest = hashlib.sha256(content).hexdigest()
+    fake = FakeHttp()
+    fake.queue(
+        FakeResponse(404, {}),
+        FakeResponse(200, _submission_body("file-analysis")),
+    )
+    fake.install(monkeypatch)
+    report = client.get(f"/api/virustotal/file-report/{digest}")
+    assert report.status_code == 200
+    assert report.json()["status"] == "not_found"
+    assert report.json()["sha256"] == digest
+    assert report.json()["object_type"] == "file"
+
+    submitted = client.post(
+        "/api/virustotal/files/scan",
+        files={"file": ("sample.apk", content, "application/vnd.android.package-archive")},
+    )
+    assert submitted.status_code == 200
+    assert submitted.json()["analysis_id"] == "file-analysis"
+    assert submitted.json()["sha256"] == digest
+    assert fake.calls[-1]["files"]["file"] == (
+        "sample.apk",
+        content,
+        "application/octet-stream",
+    )
+
+
+def test_route_file_report_rejects_invalid_hash(client, fake_key) -> None:
+    resp = client.get("/api/virustotal/file-report/not-a-hash")
+    assert resp.status_code == 400
+
+
+def test_route_file_upload_rejects_oversized_file(client, fake_key) -> None:
+    from app.api.virustotal import MAX_FILE_SIZE_BYTES
+
+    resp = client.post(
+        "/api/virustotal/files/scan",
+        files={"file": ("too-large.apk", b"x" * (MAX_FILE_SIZE_BYTES + 1), "application/octet-stream")},
+    )
+    assert resp.status_code == 413
 
 
 def test_url_id_encoding_matches_official_spec() -> None:

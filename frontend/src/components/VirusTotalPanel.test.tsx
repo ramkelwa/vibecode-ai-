@@ -117,6 +117,25 @@ describe('VirusTotalPanel', () => {
     })
   })
 
+  it('automatically checks the requested URL report after the opted-in new scan', async () => {
+    stubFetch(vtCompleted)
+    render(
+      <VirusTotalPanel
+        configured
+        initialUrl="https://example.com/"
+        autoLookup
+        autoLookupKey="scan-123"
+      />,
+    )
+    await waitFor(() => {
+      expect(screen.getByTestId('vt-result')).toBeInTheDocument()
+    })
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/virustotal/report?url=https%3A%2F%2Fexample.com%2F'),
+      expect.any(Object),
+    )
+  })
+
   it('does not require consent to check an existing report', async () => {
     stubFetch(vtNoReport)
     render(<VirusTotalPanel configured={true} />)
