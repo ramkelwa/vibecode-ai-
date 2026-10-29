@@ -9,7 +9,7 @@ export interface Health {
   app: string
   environment: string
   database: { state: 'ok' | 'unavailable'; detail: string }
-  features: { scans: boolean; findings: boolean }
+  features: { scans: boolean; findings: boolean; virustotal: boolean }
 }
 
 export interface ScanSummary {
@@ -266,6 +266,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await resp.json()) as T
 }
 
+/** VirusTotal threat intelligence (third-party; separate from scan findings) */
+
+export interface VirustotalStats {
+  malicious: number | null
+  suspicious: number | null
+  harmless: number | null
+  undetected: number | null
+  timeout: number | null
+}
+
+export type VirustotalStatus = 'queued' | 'pending' | 'completed' | 'failed' | 'not_found'
+
+export interface VirustotalResult {
+  source: 'virustotal'
+  status: VirustotalStatus
+  analysis_id: string | null
+  url: string | null
+  last_analysis_date: string | null
+  stats: VirustotalStats | null
+  engines_reporting: number | null
+  report_url: string | null
+  message: string | null
+}
+
 export interface CancelResult {
   cancelled: boolean
   status: string
@@ -335,6 +359,20 @@ export const api = {
     ),
   /** Phase 7: provider status (never includes keys). */
   aiProviderStatus: () => request<AiProviderStatus>('/api/ai-provider/status'),
+  /** VirusTotal: check an existing public URL report (no submission). */
+  virustotalReport: (targetUrl: string) =>
+    request<VirustotalResult>(
+      `/api/virustotal/report?url=${encodeURIComponent(targetUrl.trim())}`,
+    ),
+  /** VirusTotal: submit a URL for a NEW analysis (explicit consent required). */
+  virustotalScan: (targetUrl: string) =>
+    request<VirustotalResult>('/api/virustotal/scan', {
+      method: 'POST',
+      body: JSON.stringify({ url: targetUrl.trim() }),
+    }),
+  /** VirusTotal: poll the status of a submitted analysis. */
+  virustotalAnalysis: (analysisId: string) =>
+    request<VirustotalResult>(`/api/virustotal/analysis/${encodeURIComponent(analysisId)}`),
   /** Phase 7: request an AI explanation for one finding (optional action). */
   explainFinding: (scanId: string, findingId: string) =>
     request<AiExplanation>(`/api/ai-provider/explain/${scanId}`, {

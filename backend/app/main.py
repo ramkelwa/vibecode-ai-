@@ -12,7 +12,7 @@ from typing import AsyncIterator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import ai_provider, health, scan_artifacts, scan_risk, scans
+from app.api import ai_provider, health, scan_artifacts, scan_risk, scans, virustotal
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.logging import get_logger
@@ -53,4 +53,5 @@ app.include_router(scans.router, prefix=settings.API_V1_PREFIX)
 app.include_router(scan_artifacts.router, prefix=settings.API_V1_PREFIX)
 app.include_router(scan_risk.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ai_provider.router, prefix=settings.API_V1_PREFIX)
+app.include_router(virustotal.router, prefix=settings.API_V1_PREFIX)
 app.mount("/api/reports", report_routes)

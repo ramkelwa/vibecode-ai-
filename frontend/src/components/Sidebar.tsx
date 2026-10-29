@@ -15,6 +15,7 @@ export type ViewKey =
   | 'explorer'
   | 'inventory'
   | 'config'
+  | 'virustotal'
   | 'reports'
 
 const ITEMS: Array<{ key: ViewKey; label: string; icon: typeof Shield }> = [
@@ -24,6 +25,7 @@ const ITEMS: Array<{ key: ViewKey; label: string; icon: typeof Shield }> = [
   { key: 'explorer', label: 'Findings explorer', icon: Search },
   { key: 'inventory', label: 'Endpoint & script inventory', icon: Package },
   { key: 'config', label: 'Configuration & dependencies', icon: Package },
+  { key: 'virustotal', label: 'VirusTotal', icon: Shield },
   { key: 'reports', label: 'Report', icon: FileBarChart },
 ]
 

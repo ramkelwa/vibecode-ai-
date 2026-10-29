@@ -38,5 +38,8 @@ def health() -> Dict[str, Any]:
         "features": {
             "scans": db["state"] == "ok",
             "findings": db["state"] == "ok",
+            # Safe boolean only: is the third-party VirusTotal key present?
+            # Never reflects the key value or its length.
+            "virustotal": bool(settings.VIRUSTOTAL_API_KEY.strip()),
         },
     }

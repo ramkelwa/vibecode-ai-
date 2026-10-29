@@ -77,6 +77,13 @@ class Settings(BaseSettings):
     NMAP_PATH: str = "nmap"
     SEMGREP_PATH: str = "semgrep"
 
+    # --- VirusTotal threat intelligence (third-party; never a VibeShield finding) ---
+    VIRUSTOTAL_API_KEY: str = ""  # server-side only; never sent to the frontend
+    VIRUSTOTAL_BASE_URL: str = "https://www.virustotal.com/api/v3"
+    VIRUSTOTAL_TIMEOUT: int = 30  # seconds per HTTP request to VirusTotal
+    VIRUSTOTAL_MAX_SUBMITS_PER_MINUTE: int = 4  # public API allows ~4 req/min
+    VIRUSTOTAL_MAX_URL_LENGTH: int = 2048
+
     # --- Phase 4: dependency audit / source analysis ---
     NPM_COMMAND: str = "npm"
     PIP_AUDIT_COMMAND: str = "pip-audit"

@@ -58,8 +58,9 @@ describe('api client', () => {
     vi.stubGlobal('fetch', fetchMock)
     const r = await api.cancelScan('abc123')
     expect(r.cancelled).toBe(true)
+    const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
     expect(fetchMock).toHaveBeenCalledWith(
-      '/api/scans/abc123/cancel',
+      `${apiBase}/api/scans/abc123/cancel`,
       expect.objectContaining({ method: 'POST' }),
     )
   })

@@ -18,6 +18,7 @@ import FindingsExplorer from './components/FindingsExplorer'
 import InventoryPanel from './components/InventoryPanel'
 import ConfigFindings from './components/ConfigFindings'
 import ReportSection from './components/ReportSection'
+import VirusTotalPanel from './components/VirusTotalPanel'
 import { ErrorState } from './components/ui'
 
 const VIEW_TITLES: Record<ViewKey, string> = {
@@ -27,6 +28,7 @@ const VIEW_TITLES: Record<ViewKey, string> = {
   explorer: 'Findings explorer',
   inventory: 'Endpoint & script inventory',
   config: 'Configuration & dependencies',
+  virustotal: 'VirusTotal threat intelligence',
   reports: 'Report',
 }
 
@@ -369,6 +371,10 @@ export default function App() {
         )}
 
         {view === 'config' && <ConfigFindings artifacts={artifacts} findings={findings} />}
+
+        {view === 'virustotal' && (
+          <VirusTotalPanel configured={health?.features.virustotal ?? null} />
+        )}
 
         {view === 'reports' && (
           <ReportSection

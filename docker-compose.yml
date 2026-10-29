@@ -20,6 +20,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://vibeshield:vibeshield@postgres:5432/vibeshield
       SCAN_ALLOW_PRIVATE_TARGETS: "false"
+      # Passed through from the host environment at runtime; never baked into the image.
+      VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
     ports:
       - "8000:8000"
     depends_on:
