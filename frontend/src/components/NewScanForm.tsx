@@ -19,7 +19,12 @@ export const isValidProjectDir = (dir: string): boolean => {
   return v.length > 1 && (v.includes('/') || v.includes('\\'))
 }
 
-type Kind = 'website' | 'project'
+export type ScanKind = 'website' | 'file' | 'project'
+
+export type ScanSubmission =
+  | { kind: 'website'; scan: ScanSummary; targetUrl: string; includeVirusTotal: boolean }
+  | { kind: 'file'; scan: null; file: File }
+  | { kind: 'project'; scan: ScanSummary; targetUrl: null }
 
 export default function NewScanForm({
   allowedToScan,
@@ -30,10 +35,11 @@ export default function NewScanForm({
   allowedToScan: boolean
   virustotalConfigured?: boolean
   onError: (message: string) => void
-  onSubmitted: (scan: ScanSummary, kind: Kind, checkVirusTotal: boolean) => void
+  onSubmitted: (submission: ScanSubmission) => void
 }) {
-  const [kind, setKind] = useState<Kind>('website')
+  const [kind, setKind] = useState<ScanKind>('website')
   const [targetUrl, setTargetUrl] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [projectDir, setProjectDir] = useState('')
   const [websiteModules, setWebsiteModules] = useState<string[]>([...WEBSITE_MODULES])
   const [projectModules, setProjectModules] = useState<string[]>([...PROJECT_MODULES])
@@ -43,20 +49,38 @@ export default function NewScanForm({
   const [submittedScan, setSubmittedScan] = useState<ScanSummary | null>(null)
   const [sharePromptOpen, setSharePromptOpen] = useState(false)
 
-  const createScan = async (checkVirusTotal: boolean) => {
-    if (pending) return // no duplicate submissions while a request is in flight
+  const createScan = async (allowVirusTotal: boolean) => {
+    if (pending) return
     setSharePromptOpen(false)
     setFormError(null)
     setPending(true)
     try {
+      if (kind === 'file') {
+        if (!selectedFile) throw new Error('Choose a file or APK first.')
+        if (selectedFile.size > 32 * 1024 * 1024) {
+          throw new Error('VirusTotal file submissions are limited to 32 MiB.')
+        }
+        if (!allowVirusTotal) return
+        onSubmitted({ kind: 'file', scan: null, file: selectedFile })
+        return
+      }
+
       const { scan } =
         kind === 'website'
           ? await api.createScan(targetUrl.trim(), websiteModules)
           : await api.createProjectScan(projectDir.trim(), projectModules)
       setSubmittedScan(scan)
-      onSubmitted(scan, kind, checkVirusTotal && kind === 'website')
+      if (kind === 'website') {
+        onSubmitted({
+          kind: 'website',
+          scan,
+          targetUrl: targetUrl.trim(),
+          includeVirusTotal: allowVirusTotal,
+        })
+      } else {
+        onSubmitted({ kind: 'project', scan, targetUrl: null })
+      }
     } catch (err: unknown) {
-      // Show the backend's actual validation/authorization message.
       const message =
         err instanceof ApiError
           ? err.detail
@@ -70,8 +94,8 @@ export default function NewScanForm({
     }
   }
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault()
     if (pending) return
     setFormError(null)
     setValidationHint(null)
@@ -79,56 +103,69 @@ export default function NewScanForm({
       setValidationHint('Enter a valid http:// or https:// URL with a hostname.')
       return
     }
+    if (kind === 'file' && !selectedFile) {
+      setValidationHint('Choose a file or APK to scan.')
+      return
+    }
     if (kind === 'project' && !isValidProjectDir(projectDir)) {
       setValidationHint('Enter an absolute project directory path (e.g. /home/you/projects/app).')
       return
     }
-    if (kind === 'website' && virustotalConfigured) {
+    if ((kind === 'website' || kind === 'file') && virustotalConfigured) {
       setSharePromptOpen(true)
+      return
+    }
+    if (kind === 'file') {
+      setFormError('VirusTotal is not configured. Configure its API key before scanning files or APKs.')
       return
     }
     void createScan(false)
   }
 
-  const toggle = (
-    list: string[],
-    setList: (v: string[]) => void,
-    m: string,
-  ) => setList(list.includes(m) ? list.filter((x) => x !== m) : [...list, m])
+  const toggle = (list: string[], setList: (value: string[]) => void, module: string) =>
+    setList(list.includes(module) ? list.filter((item) => item !== module) : [...list, module])
 
   return (
     <Panel title="Start a new scan" testId="new-scan-panel">
-      <div className="mb-3 flex gap-2" role="tablist" aria-label="scan type">
-        {(['website', 'project'] as const).map((k) => (
+      <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="scan type">
+        {(['website', 'file', 'project'] as const).map((scanKind) => (
           <button
-            key={k}
+            key={scanKind}
             type="button"
             role="tab"
-            aria-selected={kind === k}
+            aria-selected={kind === scanKind}
             disabled={sharePromptOpen || pending}
-            onClick={() => setKind(k)}
+            onClick={() => setKind(scanKind)}
             className={`rounded px-3 py-1 text-xs font-medium ${
-              kind === k ? 'bg-sky-900/60 text-sky-300' : 'text-slate-400 hover:text-slate-200'
+              kind === scanKind ? 'bg-sky-900/60 text-sky-300' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            {k === 'website' ? 'Passive website scan' : 'Authorized project scan'}
+            {scanKind === 'website'
+              ? 'Website URL'
+              : scanKind === 'file'
+                ? 'File / APK'
+                : 'Authorized project scan'}
           </button>
         ))}
       </div>
 
       <form onSubmit={submit} className="flex flex-col gap-3">
-        {kind === 'website' ? (
+        {kind === 'website' && (
           <>
-            <div className="flex gap-2">
+            <label htmlFor="scan-target-url" className="text-xs font-medium text-slate-400">
+              Website URL
+            </label>
+            <div className="flex flex-wrap gap-2">
               <input
+                id="scan-target-url"
                 type="text"
                 required
                 aria-label="Target URL"
                 disabled={sharePromptOpen || pending}
                 value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
+                onChange={(event) => setTargetUrl(event.target.value)}
                 placeholder="https://target.example.com"
-                className="flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-sky-600"
+                className="min-w-60 flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-sky-600"
               />
               <button
                 type="submit"
@@ -136,30 +173,66 @@ export default function NewScanForm({
                 aria-busy={pending}
                 className="rounded bg-sky-700 px-4 py-2 text-sm font-medium hover:bg-sky-600 disabled:opacity-50"
               >
-                {pending ? 'Submitting…' : 'Start scan'}
+                {pending ? 'Starting…' : 'Start combined scan'}
               </button>
             </div>
             <fieldset className="flex flex-wrap gap-3 text-xs">
-              <legend className="mb-1 text-slate-500">Modules</legend>
-              {WEBSITE_MODULES.map((m) => (
-                <label key={m} className="flex items-center gap-1.5 text-slate-300">
+              <legend className="mb-1 text-slate-500">VibeShield website modules</legend>
+              {WEBSITE_MODULES.map((module) => (
+                <label key={module} className="flex items-center gap-1.5 text-slate-300">
                   <input
                     type="checkbox"
-                    checked={websiteModules.includes(m)}
-                    onChange={() => toggle(websiteModules, setWebsiteModules, m)}
+                    checked={websiteModules.includes(module)}
+                    onChange={() => toggle(websiteModules, setWebsiteModules, module)}
                     className="accent-sky-600"
                   />
-                  {m}
+                  {module}
                 </label>
               ))}
             </fieldset>
             <p className="text-xs text-slate-500" data-testid="scope-notice">
-              <span className="font-medium text-slate-400">Scope & authorization:</span> scans only
-              this single URL at a limited rate (passive GETs, no active exploitation). By starting
-              a scan you confirm you are authorized to test this target.
+              By starting the scan you confirm you are authorized to test this target. VibeShield
+              performs a passive, rate-limited website scan. VirusTotal checks its
+              public report and automatically requests a new analysis if none exists, after your
+              confirmation below.
             </p>
           </>
-        ) : (
+        )}
+
+        {kind === 'file' && (
+          <>
+            <label htmlFor="scan-file" className="text-xs font-medium text-slate-400">
+              Choose a file or APK (maximum 32 MiB)
+            </label>
+            <input
+              id="scan-file"
+              type="file"
+              disabled={sharePromptOpen || pending || !virustotalConfigured}
+              onChange={(event) => setSelectedFile(event.currentTarget.files?.[0] ?? null)}
+              className="block w-full text-sm text-slate-300 file:mr-3 file:rounded file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:text-slate-200 disabled:opacity-50"
+            />
+            {selectedFile && (
+              <p className="break-all text-xs text-slate-400">
+                Selected: {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MiB)
+              </p>
+            )}
+            <p className="text-xs text-slate-500">
+              VibeShield&apos;s own website scanner does not inspect binary files. The combined
+              report will label these results as VirusTotal-only. Your file is uploaded only after
+              you confirm, and VirusTotal may retain or share it.
+            </p>
+            <button
+              type="submit"
+              disabled={pending || !virustotalConfigured}
+              aria-busy={pending}
+              className="self-start rounded bg-sky-700 px-4 py-2 text-sm font-medium hover:bg-sky-600 disabled:opacity-50"
+            >
+              {pending ? 'Starting…' : 'Start file / APK scan'}
+            </button>
+          </>
+        )}
+
+        {kind === 'project' && (
           <>
             <div className="flex gap-2">
               <input
@@ -168,8 +241,8 @@ export default function NewScanForm({
                 aria-label="Project directory"
                 disabled={sharePromptOpen || pending}
                 value={projectDir}
-                onChange={(e) => setProjectDir(e.target.value)}
-                placeholder="/home/you/projects/my-app"
+                onChange={(event) => setProjectDir(event.target.value)}
+                placeholder="C:\\Users\\you\\projects\\app"
                 className="flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-sky-600"
               />
               <button
@@ -178,52 +251,41 @@ export default function NewScanForm({
                 aria-busy={pending}
                 className="rounded bg-sky-700 px-4 py-2 text-sm font-medium hover:bg-sky-600 disabled:opacity-50"
               >
-                {pending ? 'Submitting…' : 'Start project scan'}
+                {pending ? 'Starting…' : 'Start project scan'}
               </button>
             </div>
             <fieldset className="flex flex-wrap gap-3 text-xs">
               <legend className="mb-1 text-slate-500">Modules</legend>
-              {PROJECT_MODULES.map((m) => (
-                <label key={m} className="flex items-center gap-1.5 text-slate-300">
+              {PROJECT_MODULES.map((module) => (
+                <label key={module} className="flex items-center gap-1.5 text-slate-300">
                   <input
                     type="checkbox"
-                    checked={projectModules.includes(m)}
-                    onChange={() => toggle(projectModules, setProjectModules, m)}
+                    checked={projectModules.includes(module)}
+                    onChange={() => toggle(projectModules, setProjectModules, module)}
                     className="accent-sky-600"
                   />
-                  {m}
+                  {module}
                 </label>
               ))}
             </fieldset>
             <p className="text-xs text-slate-500" data-testid="scope-notice-project">
-              <span className="font-medium text-slate-400">Scope & authorization:</span> dependency
-              audits and static source analysis against one local directory that the backend
-              operator has authorized via AUTHORIZED_PROJECT_ROOTS. Nothing inside the project is
-              executed; unavailable audit tools are recorded, not invented.
+              Authorized dependency audits and static source analysis against a directory allowed
+              via AUTHORIZED_PROJECT_ROOTS. Project folder contents are not sent to VirusTotal.
             </p>
           </>
         )}
 
-        {validationHint && (
-          <p className="text-sm text-amber-400" role="alert" data-testid="validation-hint">
-            {validationHint}
-          </p>
-        )}
-        {formError && (
-          <p className="text-sm text-red-400" role="alert" data-testid="form-error">
-            {formError}
-          </p>
-        )}
-        {!allowedToScan && (
+        {validationHint && <p className="text-sm text-amber-400" role="alert" data-testid="validation-hint">{validationHint}</p>}
+        {formError && <p className="text-sm text-red-400" role="alert" data-testid="form-error">{formError}</p>}
+        {!allowedToScan && kind !== 'file' && (
           <p className="text-sm text-amber-400" role="note">
-            Scan persistence is unavailable (backend database down) — new scans are disabled.
+            Scan persistence is unavailable (backend database down) — new scans are disabled for website and project targets.
           </p>
         )}
         {submittedScan && (
           <p className="text-sm text-emerald-400" data-testid="submitted-scan-id">
-            Scan created — ID{' '}
-            <span className="font-mono">{submittedScan.id}</span> ({submittedScan.status}). Progress
-            updates in the Overview and History views.
+            VibeShield scan created — ID <span className="font-mono">{submittedScan.id}</span>{' '}
+            ({submittedScan.status}). Results will be assembled below.
           </p>
         )}
       </form>
@@ -232,16 +294,18 @@ export default function NewScanForm({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Confirm VirusTotal URL lookup"
+          aria-label="Confirm combined VirusTotal scan"
           className="mt-3 rounded border border-amber-900 bg-amber-950/40 p-3 text-sm text-amber-200"
           data-testid="vt-url-consent"
         >
-          <p className="mb-2 font-medium">Also check this URL with VirusTotal?</p>
+          <p className="mb-2 font-medium">Confirm the combined scan and VirusTotal sharing</p>
           <p className="mb-3 text-xs">
-            This sends the complete URL, including query parameters, to VirusTotal to look for an
-            existing public report. If no report exists, VibeShield will ask again before
-            submitting a new analysis. Do not use URLs containing private links, session IDs, or
-            secrets.
+            {kind === 'website'
+              ? 'VibeShield will scan the website. VirusTotal will receive the complete URL (including query parameters) to check its existing public report; if none exists, VibeShield will automatically submit the URL for a new VirusTotal analysis.'
+              : `The complete file "${selectedFile?.name ?? ''}" and its hash will be sent to VirusTotal to check for an existing report. If none exists, the file will be automatically uploaded for analysis.`}
+            {' '}VirusTotal may retain or publicly share submitted targets. Do not use private links,
+            credentials, confidential files, or URLs containing secrets. A VirusTotal result is
+            third-party intelligence and does not prove a site or file is safe.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -249,15 +313,17 @@ export default function NewScanForm({
               onClick={() => void createScan(true)}
               className="rounded bg-amber-700 px-3 py-1 text-xs font-medium text-white hover:bg-amber-600"
             >
-              Start VibeShield + VirusTotal check
+              I agree — start combined scan
             </button>
-            <button
-              type="button"
-              onClick={() => void createScan(false)}
-              className="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200"
-            >
-              VibeShield only
-            </button>
+            {kind === 'website' && (
+              <button
+                type="button"
+                onClick={() => void createScan(false)}
+                className="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200"
+              >
+                VibeShield only
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setSharePromptOpen(false)}

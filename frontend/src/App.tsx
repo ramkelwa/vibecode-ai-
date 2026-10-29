@@ -9,6 +9,7 @@ import {
   type ScanDetail as ScanDetailData,
   type ScanSummary,
 } from './api'
+import type { ScanSubmission } from './components/NewScanForm'
 import Sidebar, { type ViewKey } from './components/Sidebar'
 import ScanOverview, { type OverviewMetrics } from './components/ScanOverview'
 import ScanHistory from './components/ScanHistory'
@@ -18,6 +19,7 @@ import FindingsExplorer from './components/FindingsExplorer'
 import InventoryPanel from './components/InventoryPanel'
 import ConfigFindings from './components/ConfigFindings'
 import ReportSection from './components/ReportSection'
+import CombinedScanReport from './components/CombinedScanReport'
 import VirusTotalPanel from './components/VirusTotalPanel'
 import VirusTotalFilePanel from './components/VirusTotalFilePanel'
 import { ErrorState } from './components/ui'
@@ -47,7 +49,9 @@ export default function App() {
 
   // Selected-scan data.
   const [scanId, setScanId] = useState<string | null>(null)
-  const [virusTotalTarget, setVirusTotalTarget] = useState<{ scanId: string; url: string } | null>(null)
+  const [combinedSubmission, setCombinedSubmission] = useState<
+    Extract<ScanSubmission, { kind: 'website' | 'file' }> | null
+  >(null)
   const [detail, setDetail] = useState<ScanDetailData | null>(null)
   const [artifacts, setArtifacts] = useState<Artifacts | null>(null)
   const [riskSummary, setRiskSummary] = useState<RiskSummary | null>(null)
@@ -213,6 +217,7 @@ export default function App() {
   }, [scans, scansError, detail, severityCounts])
 
   const openScan = (id: string) => {
+    setCombinedSubmission(null)
     setScanId(id)
     setView('explorer')
   }
@@ -306,31 +311,41 @@ export default function App() {
               allowedToScan={dbUp}
               virustotalConfigured={health?.features.virustotal ?? false}
               onError={() => undefined}
-              onSubmitted={(scan, kind, checkVirusTotal) => {
-                setScanId(scan.id)
-                setVirusTotalTarget(
-                  kind === 'website' && checkVirusTotal
-                    ? { scanId: scan.id, url: scan.target_url }
+              onSubmitted={(submission) => {
+                if (submission.kind === 'file') {
+                  setScanId(null)
+                  setCombinedSubmission(submission)
+                  return
+                }
+                setScanId(submission.scan.id)
+                setCombinedSubmission(
+                  submission.kind === 'website' && submission.includeVirusTotal
+                    ? submission
                     : null,
                 )
                 refreshScans()
               }}
             />
-            {virusTotalTarget && (
-              <VirusTotalPanel
-                key={virusTotalTarget.scanId}
-                configured={health?.features.virustotal ?? null}
-                initialUrl={virusTotalTarget.url}
-                autoLookup
-                autoLookupKey={virusTotalTarget.scanId}
+            {combinedSubmission ? (
+              <CombinedScanReport
+                key={
+                  combinedSubmission.kind === 'website'
+                    ? combinedSubmission.scan.id
+                    : `${combinedSubmission.file.name}-${combinedSubmission.file.size}-${combinedSubmission.file.lastModified}`
+                }
+                submission={combinedSubmission}
+                detail={detail}
+                configured={health?.features.virustotal ?? false}
+                onScanUpdated={refreshScans}
+                onFocusFindings={() => setView('explorer')}
+              />
+            ) : (
+              <ScanDetail
+                detail={detail}
+                onScanUpdated={refreshScans}
+                onFocusFindings={() => setView('explorer')}
               />
             )}
-            <VirusTotalFilePanel configured={health?.features.virustotal ?? null} />
-            <ScanDetail
-              detail={detail}
-              onScanUpdated={refreshScans}
-              onFocusFindings={() => setView('explorer')}
-            />
           </div>
         )}
 
@@ -391,7 +406,10 @@ export default function App() {
         {view === 'config' && <ConfigFindings artifacts={artifacts} findings={findings} />}
 
         {view === 'virustotal' && (
-          <VirusTotalPanel configured={health?.features.virustotal ?? null} />
+          <div className="space-y-4">
+            <VirusTotalPanel configured={health?.features.virustotal ?? null} />
+            <VirusTotalFilePanel configured={health?.features.virustotal ?? null} />
+          </div>
         )}
 
         {view === 'reports' && (

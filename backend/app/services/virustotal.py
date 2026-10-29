@@ -97,6 +97,14 @@ class VirustotalStats(BaseModel):
     timeout: Optional[int] = Field(None, ge=0)
 
 
+class VirustotalEngineResult(BaseModel):
+    engine: str
+    category: str
+    result: Optional[str] = None
+    method: Optional[str] = None
+    engine_update: Optional[str] = None
+
+
 class VirustotalResult(BaseModel):
     """Normalized VirusTotal result, clearly attributed to the third party."""
 
@@ -108,6 +116,7 @@ class VirustotalResult(BaseModel):
     sha256: Optional[str] = None
     last_analysis_date: Optional[str] = None  # ISO 8601
     stats: Optional[VirustotalStats] = None
+    engine_results: list[VirustotalEngineResult] = Field(default_factory=list)
     # Total engines that actually reported. Only computed when the primary
     # vote buckets are all present; never fabricated from partial data.
     engines_reporting: Optional[int] = None
@@ -180,6 +189,7 @@ class _SubmissionGuard:
 
 
 submission_guard = _SubmissionGuard()
+_submission_lock = asyncio.Lock()
 
 
 # --- HTTP plumbing -----------------------------------------------------------
@@ -302,6 +312,35 @@ def _normalize_stats(raw: Any) -> Optional[tuple[VirustotalStats, Optional[int]]
     return stats, total
 
 
+def _normalize_engine_results(raw: Any) -> list[VirustotalEngineResult]:
+    if not isinstance(raw, dict):
+        return []
+    normalized: list[VirustotalEngineResult] = []
+    for engine, value in sorted(raw.items(), key=lambda item: str(item[0]).casefold()):
+        if not isinstance(engine, str) or not isinstance(value, dict):
+            continue
+        category = value.get("category")
+        if not isinstance(category, str):
+            continue
+
+        def safe_text(key: str, limit: int = 300) -> Optional[str]:
+            item = value.get(key)
+            return item[:limit] if isinstance(item, str) else None
+
+        normalized.append(
+            VirustotalEngineResult(
+                engine=engine[:100],
+                category=category[:40],
+                result=safe_text("result"),
+                method=safe_text("method", 100),
+                engine_update=safe_text("engine_update", 40),
+            )
+        )
+        if len(normalized) >= 200:
+            break
+    return normalized
+
+
 def _epoch_to_iso(value: Any) -> Optional[str]:
     if isinstance(value, (int, float)) and value > 0:
         from datetime import datetime, timezone
@@ -317,35 +356,33 @@ async def submit_url_for_analysis(url: str) -> VirustotalResult:
     """POST /urls — queue a *new* analysis. Synchronous policy: callers must
     have validated the URL with ``url_guard`` already; dedup + rate limit apply
     here because both depend on the exact URL string."""
-    existing = submission_guard.check_and_record(url)
-    if existing:
+    async with _submission_lock:
+        existing = submission_guard.check_and_record(url)
+        if existing:
+            return VirustotalResult(
+                status="queued",
+                analysis_id=existing,
+                url=url,
+                message="A recent submission for this URL was reused (deduplicated); analysis may already be queued.",
+            )
+        try:
+            resp = await _request("POST", "/urls", allow_retry=False, data={"url": url})
+            body: Any = _parse_json(resp)
+        except Exception:
+            submission_guard.release_last()
+            raise
+        data = _require_shape(body)
+        analysis_id = data.get("id")
+        if not isinstance(analysis_id, str) or not analysis_id:
+            raise VirusTotalBadUpstreamResponse("unexpected response structure from VirusTotal")
+        submission_guard.remember(url, analysis_id)
         return VirustotalResult(
             status="queued",
-            analysis_id=existing,
+            analysis_id=analysis_id,
             url=url,
-            message="A recent submission for this URL was reused (deduplicated); analysis may already be queued.",
+            report_url=gui_report_url(url),
+            message="URL submitted successfully for analysis.",
         )
-    # Official submission format: application/x-www-form-urlencoded `url=...`.
-    try:
-        resp = await _request("POST", "/urls", allow_retry=False, data={"url": url})
-        body: Any = _parse_json(resp)
-    except Exception:
-        # Do not leave a consumed submit-slot when the request failed before
-        # VirusTotal accepted it — the caller may legitimately retry manually.
-        submission_guard.release_last()
-        raise
-    data = _require_shape(body)
-    analysis_id = data.get("id")
-    if not isinstance(analysis_id, str) or not analysis_id:
-        raise VirusTotalBadUpstreamResponse("unexpected response structure from VirusTotal")
-    submission_guard.remember(url, analysis_id)
-    return VirustotalResult(
-        status="queued",
-        analysis_id=analysis_id,
-        url=url,
-        report_url=gui_report_url(url),
-        message="URL submitted successfully for analysis.",
-    )
 
 
 async def get_analysis(analysis_id: str) -> VirustotalResult:
@@ -381,11 +418,16 @@ async def get_analysis(analysis_id: str) -> VirustotalResult:
     stats_raw = attrs.get("stats") if isinstance(attrs.get("stats"), dict) else attrs.get("last_analysis_stats")
     if status == "completed":
         normalized = _normalize_stats(stats_raw)
+    engine_results = _normalize_engine_results(
+        attrs.get("results") if isinstance(attrs.get("results"), dict)
+        else attrs.get("last_analysis_results")
+    )
     result = VirustotalResult(
         status=status,
         analysis_id=stripped,
         last_analysis_date=None,
         stats=normalized[0] if normalized and status == "completed" else None,
+        engine_results=engine_results if status == "completed" else [],
         engines_reporting=normalized[1] if normalized and status == "completed" else None,
     )
     meta = data.get("meta")
@@ -423,11 +465,13 @@ async def get_url_report(url: str) -> VirustotalResult:
     if not isinstance(attrs, dict):
         raise VirusTotalBadUpstreamResponse("unexpected response structure from VirusTotal")
     normalized = _normalize_stats(attrs.get("last_analysis_stats"))
+    engine_results = _normalize_engine_results(attrs.get("last_analysis_results"))
     result = VirustotalResult(
         status="completed",
         url=url,
         last_analysis_date=_epoch_to_iso(attrs.get("last_analysis_date")),
         stats=normalized[0] if normalized else None,
+        engine_results=engine_results,
         engines_reporting=normalized[1] if normalized else None,
         report_url=gui_report_url(url),
     )
@@ -460,6 +504,7 @@ async def get_file_report(sha256: str) -> VirustotalResult:
         sha256=digest,
         last_analysis_date=_epoch_to_iso(attrs.get("last_analysis_date")),
         stats=normalized[0] if normalized else None,
+        engine_results=_normalize_engine_results(attrs.get("last_analysis_results")),
         engines_reporting=normalized[1] if normalized else None,
         report_url=gui_file_report_url(digest),
     )
@@ -473,37 +518,38 @@ async def submit_file_for_analysis(
     if hashlib.sha256(content).hexdigest() != digest:
         raise VirusTotalBadUpstreamResponse("file hash does not match uploaded content")
     identifier = f"file:{digest}"
-    existing = submission_guard.check_and_record(identifier)
-    if existing:
+    async with _submission_lock:
+        existing = submission_guard.check_and_record(identifier)
+        if existing:
+            return VirustotalResult(
+                status="queued",
+                object_type="file",
+                analysis_id=existing,
+                sha256=digest,
+                report_url=gui_file_report_url(digest),
+                message="A recent submission for this file was reused (deduplicated); analysis may already be queued.",
+            )
+        try:
+            resp = await _request(
+                "POST",
+                "/files",
+                allow_retry=False,
+                files={"file": (filename, content, "application/octet-stream")},
+            )
+            body = _parse_json(resp)
+        except Exception:
+            submission_guard.release_last()
+            raise
+        data = _require_shape(body)
+        analysis_id = data.get("id")
+        if not isinstance(analysis_id, str) or not analysis_id:
+            raise VirusTotalBadUpstreamResponse("unexpected response structure from VirusTotal")
+        submission_guard.remember(identifier, analysis_id)
         return VirustotalResult(
             status="queued",
             object_type="file",
-            analysis_id=existing,
+            analysis_id=analysis_id,
             sha256=digest,
             report_url=gui_file_report_url(digest),
-            message="A recent submission for this file was reused (deduplicated); analysis may already be queued.",
+            message="File submitted successfully for analysis.",
         )
-    try:
-        resp = await _request(
-            "POST",
-            "/files",
-            allow_retry=False,
-            files={"file": (filename, content, "application/octet-stream")},
-        )
-        body = _parse_json(resp)
-    except Exception:
-        submission_guard.release_last()
-        raise
-    data = _require_shape(body)
-    analysis_id = data.get("id")
-    if not isinstance(analysis_id, str) or not analysis_id:
-        raise VirusTotalBadUpstreamResponse("unexpected response structure from VirusTotal")
-    submission_guard.remember(identifier, analysis_id)
-    return VirustotalResult(
-        status="queued",
-        object_type="file",
-        analysis_id=analysis_id,
-        sha256=digest,
-        report_url=gui_file_report_url(digest),
-        message="File submitted successfully for analysis.",
-    )

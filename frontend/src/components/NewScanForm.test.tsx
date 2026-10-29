@@ -32,7 +32,7 @@ describe('NewScanForm', () => {
   it('blocks submission with a validation hint for an invalid URL', async () => {
     render(<NewScanForm allowedToScan onError={() => undefined} onSubmitted={() => undefined} />)
     await userEvent.type(await screen.findByLabelText(/Target URL/i), 'not-a-url')
-    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Start combined scan/i }))
     expect(await screen.findByTestId('validation-hint')).toHaveTextContent(/valid http/i)
     expect(fetch).not.toHaveBeenCalled()
   })
@@ -41,7 +41,7 @@ describe('NewScanForm', () => {
     stubFetchCreate(scan)
     render(<NewScanForm allowedToScan onError={() => undefined} onSubmitted={() => undefined} />)
     await userEvent.type(await screen.findByLabelText(/Target URL/i), 'https://target.example.com')
-    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Start combined scan/i }))
     expect(await screen.findByTestId('submitted-scan-id')).toHaveTextContent('abc123def456')
   })
 
@@ -57,12 +57,17 @@ describe('NewScanForm', () => {
       />,
     )
     await userEvent.type(await screen.findByLabelText(/Target URL/i), 'https://target.example.com')
-    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Start combined scan/i }))
     expect(await screen.findByTestId('vt-url-consent')).toBeInTheDocument()
-    expect(screen.getByText(/complete URL, including query parameters/i)).toBeInTheDocument()
+    expect(screen.getByText(/complete URL \(including query parameters\)/i)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /VibeShield only/i }))
     await screen.findByTestId('submitted-scan-id')
-    expect(onSubmitted).toHaveBeenCalledWith(scan, 'website', false)
+    expect(onSubmitted).toHaveBeenCalledWith({
+      kind: 'website',
+      scan,
+      targetUrl: 'https://target.example.com',
+      includeVirusTotal: false,
+    })
   })
 
   it('starts the requested URL report check only after the user opts in', async () => {
@@ -77,12 +82,39 @@ describe('NewScanForm', () => {
       />,
     )
     await userEvent.type(await screen.findByLabelText(/Target URL/i), 'https://target.example.com')
-    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Start combined scan/i }))
     await userEvent.click(
-      await screen.findByRole('button', { name: /Start VibeShield \+ VirusTotal check/i }),
+      await screen.findByRole('button', { name: /I agree — start combined scan/i }),
     )
     await screen.findByTestId('submitted-scan-id')
-    expect(onSubmitted).toHaveBeenCalledWith(scan, 'website', true)
+    expect(onSubmitted).toHaveBeenCalledWith({
+      kind: 'website',
+      scan,
+      targetUrl: 'https://target.example.com',
+      includeVirusTotal: true,
+    })
+  })
+
+  it('uses the same scan flow for an APK and confirms automatic upload when no report exists', async () => {
+    const onSubmitted = vi.fn()
+    render(
+      <NewScanForm
+        allowedToScan
+        virustotalConfigured
+        onError={() => undefined}
+        onSubmitted={onSubmitted}
+      />,
+    )
+    await userEvent.click(screen.getByRole('tab', { name: /File \/ APK/i }))
+    const file = new File(['apk bytes'], 'app.apk', { type: 'application/vnd.android.package-archive' })
+    await userEvent.upload(screen.getByLabelText(/Choose a file or APK/i), file)
+    await userEvent.click(screen.getByRole('button', { name: /Start file \/ APK scan/i }))
+    expect(await screen.findByRole('dialog', { name: /Confirm combined VirusTotal scan/i })).toBeInTheDocument()
+    expect(screen.getByText(/automatically uploaded for analysis/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /I agree — start combined scan/i }))
+    await waitFor(() => {
+      expect(onSubmitted).toHaveBeenCalledWith({ kind: 'file', scan: null, file })
+    })
   })
 
   it('prevents duplicate submissions while a request is pending', async () => {
@@ -93,8 +125,8 @@ describe('NewScanForm', () => {
     vi.stubGlobal('fetch', fetchMock)
     render(<NewScanForm allowedToScan onError={() => undefined} onSubmitted={() => undefined} />)
     await userEvent.type(await screen.findByLabelText(/Target URL/i), 'https://target.example.com')
-    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
-    const pendingButton = screen.getByRole('button', { name: /Submitting…/i })
+    await userEvent.click(screen.getByRole('button', { name: /Start combined scan/i }))
+    const pendingButton = screen.getByRole('button', { name: /Starting…/i })
     expect(pendingButton).toBeDisabled()
     await userEvent.click(pendingButton)
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
@@ -117,7 +149,7 @@ describe('NewScanForm', () => {
     const onErrorSpy = vi.fn()
     render(<NewScanForm allowedToScan onError={onErrorSpy} onSubmitted={() => undefined} />)
     await userEvent.type(await screen.findByLabelText(/Target URL/i), 'https://target.example.com')
-    await userEvent.click(screen.getByRole('button', { name: /Start scan/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Start combined scan/i }))
     expect(await screen.findByTestId('form-error')).toHaveTextContent(/confirm you are authorized/i)
     expect(onErrorSpy).toHaveBeenCalled()
   })
@@ -129,7 +161,7 @@ describe('NewScanForm', () => {
 
   it('disables the form when the backend database is down', async () => {
     render(<NewScanForm allowedToScan={false} onError={() => undefined} onSubmitted={() => undefined} />)
-    expect(await screen.findByRole('button', { name: /Start scan/i })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /Start combined scan/i })).toBeDisabled()
     expect(await screen.findByRole('note')).toHaveTextContent(/new scans are disabled/i)
   })
 

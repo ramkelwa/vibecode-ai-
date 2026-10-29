@@ -305,6 +305,14 @@ async def test_completed_analysis_statistics_normalized(monkeypatch: pytest.Monk
                             "undetected": 60,
                             "timeout": 0,
                         },
+                        "results": {
+                            "Example AV": {
+                                "category": "malicious",
+                                "result": "Trojan.Test",
+                                "method": "blacklist",
+                                "engine_update": "20261029",
+                            }
+                        },
                     },
                     "meta": {"url_info": {"id": "b64urlid"}},
                 }
@@ -316,6 +324,8 @@ async def test_completed_analysis_statistics_normalized(monkeypatch: pytest.Monk
     assert result.status == "completed"
     assert result.stats.malicious == 2
     assert result.engines_reporting == 143  # 80+2+1+60, only when all buckets present
+    assert result.engine_results[0].engine == "Example AV"
+    assert result.engine_results[0].result == "Trojan.Test"
     assert result.report_url == "https://www.virustotal.com/gui/url/b64urlid"
 
 
@@ -360,6 +370,14 @@ async def test_report_success(monkeypatch: pytest.MonkeyPatch, fake_key) -> None
                             "undetected": 70,
                             "timeout": 1,
                         },
+                        "last_analysis_results": {
+                            "Example AV": {
+                                "category": "suspicious",
+                                "result": "Possible unwanted app",
+                                "method": "signature",
+                                "engine_update": "20261029",
+                            }
+                        },
                         "last_analysis_date": 1700000000,
                     },
                 }
@@ -372,6 +390,8 @@ async def test_report_success(monkeypatch: pytest.MonkeyPatch, fake_key) -> None
     assert result.last_analysis_date is not None
     assert result.stats.malicious == 0
     assert result.engines_reporting == 160  # sum of primary buckets only (timeout excluded)
+    assert result.engine_results[0].category == "suspicious"
+    assert result.engine_results[0].result == "Possible unwanted app"
     assert fake.calls[0]["url"].endswith("/urls/" + vt.url_instance_identifier("https://example.com/"))
 
 

@@ -276,6 +276,14 @@ export interface VirustotalStats {
   timeout: number | null
 }
 
+export interface VirustotalEngineResult {
+  engine: string
+  category: string
+  result: string | null
+  method: string | null
+  engine_update: string | null
+}
+
 export type VirustotalStatus = 'queued' | 'pending' | 'completed' | 'failed' | 'not_found'
 
 export interface VirustotalResult {
@@ -287,6 +295,7 @@ export interface VirustotalResult {
   sha256?: string | null
   last_analysis_date: string | null
   stats: VirustotalStats | null
+  engine_results?: VirustotalEngineResult[]
   engines_reporting: number | null
   report_url: string | null
   message: string | null
