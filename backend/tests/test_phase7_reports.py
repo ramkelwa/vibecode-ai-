@@ -47,6 +47,15 @@ def client() -> TestClient:
         yield c
 
 
+@pytest.fixture(autouse=True)
+def _force_offline_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the suite hermetic: a developer's .env must never reach a real API."""
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "AI_PROVIDER_FAMILY", "offline")
+    monkeypatch.setattr(settings, "AI_API_KEY", "")
+
+
 # ---------------------------------------------------------------------------
 # Provider status
 # ---------------------------------------------------------------------------
@@ -291,12 +300,12 @@ def test_explain_finding_with_no_ai(client: TestClient) -> None:
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["label"] == "AI interpretation unavailable"
-    assert body["provider"] == "offline"
-    assert body["model"] == "offline"
-    assert body["text"] == ""
-    assert body["error"] == "AI provider is disabled (AI_PROVIDER_FAMILY=offline)"
-    assert body["warning"] is None
+    assert body["label"] == "Local interpretation (no AI provider configured)"
+    assert body["provider"] == "local"
+    assert body["model"] == "rule-based"
+    assert "Test finding" in body["text"]
+    assert body["error"] is None
+    assert "generated locally" in body["warning"]
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)?", body["generated_at"]) is not None
 
 
@@ -322,8 +331,8 @@ def test_explain_finding_persists_on_row(client: TestClient) -> None:
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["text"] == ""
-    assert body["error"] == "AI provider is disabled (AI_PROVIDER_FAMILY=offline)"
+    assert "Persisted test finding" in body["text"]
+    assert body["error"] is None
 
     from app.core.database import SessionLocal
     from app.models import Finding
@@ -332,9 +341,9 @@ def test_explain_finding_persists_on_row(client: TestClient) -> None:
     try:
         row = db.query(Finding).filter(Finding.scan_id == scan_id).first()
         assert row is not None
-        assert row.ai_provider == "offline"
-        assert row.ai_explanation in (None, "")
-        assert row.ai_error == "AI provider is disabled (AI_PROVIDER_FAMILY=offline)"
+        assert row.ai_provider == "local"
+        assert row.ai_explanation and "Persisted test finding" in row.ai_explanation
+        assert row.ai_error is None
         assert row.ai_generated_at is not None
     finally:
         db.close()
@@ -1073,8 +1082,8 @@ def test_provider_offline_explanation_has_explaining_error(client: TestClient) -
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["text"] == ""
-    assert body["error"] == "AI provider is disabled (AI_PROVIDER_FAMILY=offline)"
+    assert body["text"]
+    assert body["error"] is None
 
 
 def test_provider_unavailable_returns_error_not_exception(client: TestClient) -> None:

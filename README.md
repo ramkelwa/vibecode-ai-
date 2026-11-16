@@ -276,7 +276,7 @@ Run with: `npm test` (from `vibeshield-ai/frontend`).
 
 **AI provider abstraction (`app/providers.py`):**
 
-- Families: `offline` (default; no AI, core functionality unaffected), `openai_compat` (OpenRouter and other OpenAI-compatible chat-completions endpoints), `glm` (GLM-family models over an OpenAI-compatible transport).
+- Families: `offline` (default; no AI — explanations fall back to deterministic text built from the stored finding), `openai_compat` (OpenRouter and other OpenAI-compatible chat-completions endpoints), `glm` (GLM-family models over an OpenAI-compatible transport).
 - Configuration lives only in backend environment variables (see `.env.example`):
   - `AI_PROVIDER_FAMILY` — `offline` | `openai_compat` | `glm`
   - `AI_PROVIDER_BASE_URL` — chat-completions base URL (no trailing slash)
@@ -292,7 +292,7 @@ Run with: `npm test` (from `vibeshield-ai/frontend`).
 - `POST /api/ai-provider/explain/{scan_id}` — builds a prompt strictly from stored fields (title, category, severity, confidence, verification status, source module, description, CWE/CVE, affected asset, redacted evidence, stored remediation, optional correlation reasons). The prompt forbids inventing evidence/CVEs, forbids upgrading `potential` findings, forbids claiming verification, and instructs the model to treat target-controlled content as untrusted data (never as instructions).
 - `POST /api/ai-provider/explain-and-store/{scan_id}` — same, persisting provider/model/text/timestamp on the finding row (`ai_explanation`, `ai_provider`, `ai_error`, `ai_generated_at`).
 - Server-side redaction masks well-known sensitive evidence keys before they reach a prompt.
-- The frontend renders AI output in a separate, clearly labeled block ("AI-generated interpretation — provider X / model Y"), distinct from scanner evidence; provider failures render honestly as "AI explanation unavailable".
+- The frontend renders provider output in a separate, clearly labeled block ("AI-generated interpretation" when a provider answered; "Local interpretation (no AI provider configured)" for the offline rule-based fallback), distinct from scanner evidence; provider failures render honestly as "AI explanation unavailable".
 
 **Reports (from stored scan data only, nothing fabricated):**
 

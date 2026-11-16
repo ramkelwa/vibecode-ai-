@@ -219,7 +219,7 @@ export default function ScanDetail({
                       className="flex shrink-0 items-center gap-1 rounded border border-violet-700 px-2 py-0.5 text-xs text-violet-300 hover:bg-violet-900/40 disabled:opacity-50"
                     >
                       <Sparkles className="h-3 w-3" aria-hidden />
-                      {explainPendingId === f.id ? 'Asking…' : 'Explain (AI)'}
+                      {explainPendingId === f.id ? 'Asking…' : 'Explain'}
                     </button>
                     <span className="shrink-0 font-mono text-xs text-slate-600">{f.source_module}</span>
                   </div>

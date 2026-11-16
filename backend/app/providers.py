@@ -258,6 +258,90 @@ class AiProvider(ABC):
 # ---------------------------------------------------------------------------
 
 
+def build_local_explanation(
+    finding: Dict[str, Any],
+    *,
+    correlation_links: Optional[List[Dict[str, Any]]] = None,
+) -> str:
+    """Build a deterministic interpretation from stored finding fields.
+
+    This is not an AI generation: it only restates stored scanner data (title,
+    severity, description, impact, remediation, evidence, identifiers) so the
+    explain action still returns something useful when no AI provider is
+    configured. Sensitive evidence keys are redacted exactly as they are for
+    the remote prompt.
+    """
+    title = _cap_string(finding.get("title"), 200).strip() or "This finding"
+    severity = _cap_string(finding.get("severity"), 20).strip().lower() or "unknown"
+    category = _cap_string(finding.get("category"), 80).strip()
+    module = _cap_string(finding.get("source_module"), 80).strip()
+    asset = _cap_string(finding.get("affected_asset"), 400).strip()
+    confidence = _cap_string(finding.get("confidence"), 20).strip()
+    verification = _cap_string(finding.get("verification_status"), 30).strip()
+    description = _cap_string(finding.get("description"), 800).strip()
+    impact = _cap_string(finding.get("impact"), 600).strip()
+    remediation = _cap_string(finding.get("remediation"), 700).strip()
+    cwe = _cap_string(finding.get("cwe"), 40).strip()
+    cve = _cap_string(finding.get("cve"), 40).strip()
+
+    lines: List[str] = []
+
+    opening = f"{title} is a {severity}-severity {category or 'security'} finding"
+    if asset:
+        opening += f" reported for {asset}"
+    if module:
+        opening += f" by the {module} module"
+    lines.append(opening + ".")
+
+    if description:
+        lines.append(f"Description (as stored): {description}")
+
+    assessment = []
+    if confidence:
+        assessment.append(f"confidence: {confidence}")
+    if verification:
+        assessment.append(f"verification status: {verification}")
+    if assessment:
+        lines.append("Assessment: " + "; ".join(assessment) + ".")
+
+    identifiers = []
+    if cwe:
+        identifiers.append(cwe if cwe.upper().startswith("CWE") else f"CWE {cwe}")
+    if cve:
+        identifiers.append(cve if cve.upper().startswith("CVE") else f"CVE {cve}")
+    if identifiers:
+        lines.append("Recorded identifiers: " + ", ".join(identifiers) + ".")
+
+    evidence = _truncate_json_for_prompt(
+        _redact_secrets_for_prompt(finding.get("evidence") or {}), 800
+    )
+    if evidence and evidence not in ("{}", "[]", "null", '""'):
+        lines.append(f"Recorded evidence (secrets redacted): {evidence}")
+
+    if impact:
+        lines.append(f"Why it matters (as stored): {impact}")
+
+    if remediation:
+        lines.append(f"Recommended remediation (as stored): {remediation}")
+    else:
+        lines.append("No remediation text was stored for this finding.")
+
+    related = []
+    for link in (correlation_links or [])[:5]:
+        relation = _cap_string(link.get("relation"), 80).strip()
+        reason = _cap_string(link.get("reason"), 300).strip()
+        if relation or reason:
+            related.append(f"{relation}: {reason}".strip(": "))
+    if related:
+        lines.append("Related findings: " + "; ".join(related) + ".")
+
+    lines.append(
+        "This interpretation was generated locally from the stored finding fields; "
+        "no external AI model was used."
+    )
+    return "\n\n".join(lines)
+
+
 class OfflineProvider(AiProvider):
     family = "offline"
     configured = True
@@ -274,6 +358,23 @@ class OfflineProvider(AiProvider):
             "provider": self.family,
             "model": self.model_hint,
             "error": "AI provider is disabled (AI_PROVIDER_FAMILY=offline)",
+        }
+
+    def explain_finding(
+        self,
+        finding: Dict[str, Any],
+        *,
+        correlation_links: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Fall back to a local, rule-based interpretation instead of failing."""
+        return {
+            "text": build_local_explanation(finding, correlation_links=correlation_links),
+            "provider": "local",
+            "model": "rule-based",
+            "warning": (
+                "No AI provider is configured (AI_PROVIDER_FAMILY=offline); "
+                "this interpretation was generated locally from stored scan data."
+            ),
         }
 
 

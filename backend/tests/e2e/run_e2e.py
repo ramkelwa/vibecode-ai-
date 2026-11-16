@@ -305,8 +305,11 @@ def main() -> int:
                 fid = scan_findings[0]["id"]
                 r = client.post(f"/api/ai-provider/explain/{scan_id}",
                                 json={"finding_id": fid})
-                check("AI explanation degrades honestly when disabled",
-                      r.status_code == 200 and "disabled" in (r.json().get("error") or "").lower())
+                explain_body = r.json()
+                check("AI explanation falls back to local text when disabled",
+                      r.status_code == 200
+                      and explain_body.get("provider") == "local"
+                      and bool(explain_body.get("text")))
         finally:
             backend.terminate()
             try:

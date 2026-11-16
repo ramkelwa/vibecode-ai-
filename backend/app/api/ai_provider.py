@@ -9,7 +9,8 @@ Safety properties:
 - failures are graceful: an unavailable/malformed/timeout provider returns an
   error detail and an empty explanation, never crashes the API
 - the core application stays functional when AI is disabled (provider family
-  "offline" returns an empty explanation with an explanatory error)
+  "offline" returns a rule-based local interpretation labeled as such, not as
+  AI-generated text)
 """
 
 from __future__ import annotations
@@ -116,7 +117,7 @@ def explain_finding(
         "error": error,
         "warning": result.get("warning"),
         "generated_at": _now_iso(),
-        "label": "AI-generated interpretation" if text else "AI interpretation unavailable",
+        "label": _explanation_label(result.get("provider") or provider.family, text),
     }
 
 
@@ -171,13 +172,22 @@ def explain_finding_and_store(
         "error": result.get("error"),
         "warning": result.get("warning"),
         "generated_at": finding.ai_generated_at.isoformat(),
-        "label": "AI-generated interpretation" if text else "AI interpretation unavailable",
+        "label": _explanation_label(result.get("provider") or provider.family, text),
     }
 
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+
+def _explanation_label(provider: str, text: str) -> str:
+    """Label the source honestly: rule-based local text is never called AI."""
+    if not text:
+        return "AI interpretation unavailable"
+    if (provider or "").strip().lower() == "local":
+        return "Local interpretation (no AI provider configured)"
+    return "AI-generated interpretation"
 
 
 def _finding_to_dict(f: Finding) -> Dict[str, Any]:
