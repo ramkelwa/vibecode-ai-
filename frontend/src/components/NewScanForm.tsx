@@ -138,8 +138,8 @@ export default function NewScanForm({
             onClick={() => setKind(scanKind)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
               kind === scanKind
-                ? 'border-cyan-300/40 bg-gradient-to-b from-cyan-400/25 to-cyan-500/5 text-cyan-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_20px_-8px_rgba(56,232,255,0.9)]'
-                : 'border-white/5 bg-white/[0.02] text-slate-400 hover:border-white/10 hover:text-slate-200'
+                ? 'border-cyan-300/40 bg-gradient-to-b from-cyan-400/25 to-cyan-500/5 text-cyan-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_20px_-8px_rgba(45,106,86,0.9)]'
+                : 'border-slate-900/5 bg-slate-900/[0.02] text-slate-400 hover:border-slate-900/10 hover:text-slate-200'
             }`}
           >
             {scanKind === 'website'
@@ -211,7 +211,7 @@ export default function NewScanForm({
               type="file"
               disabled={sharePromptOpen || pending || !virustotalConfigured}
               onChange={(event) => setSelectedFile(event.currentTarget.files?.[0] ?? null)}
-              className="block w-full rounded-xl text-sm text-slate-300 file:mr-3 file:rounded-lg file:border file:border-white/10 file:bg-gradient-to-b file:from-slate-700 file:to-slate-800 file:px-3 file:py-2 file:text-xs file:text-slate-200 file:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] hover:file:brightness-110 disabled:opacity-50"
+              className="block w-full rounded-xl text-sm text-slate-300 file:mr-3 file:rounded-lg file:border file:border-slate-900/10 file:bg-gradient-to-b file:from-slate-700 file:to-slate-800 file:px-3 file:py-2 file:text-xs file:text-slate-200 file:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] hover:file:brightness-110 disabled:opacity-50"
             />
             {selectedFile && (
               <p className="break-all text-xs text-slate-400">
@@ -227,7 +227,7 @@ export default function NewScanForm({
               type="submit"
               disabled={pending || !virustotalConfigured}
               aria-busy={pending}
-              className="self-start rounded bg-sky-700 px-4 py-2 text-sm font-medium hover:bg-sky-600 disabled:opacity-50"
+              className="vin-btn-primary self-start px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {pending ? 'Starting…' : 'Start file / APK scan'}
             </button>
@@ -277,15 +277,15 @@ export default function NewScanForm({
           </>
         )}
 
-        {validationHint && <p className="text-sm text-amber-400" role="alert" data-testid="validation-hint">{validationHint}</p>}
-        {formError && <p className="text-sm text-red-400" role="alert" data-testid="form-error">{formError}</p>}
+        {validationHint && <p className="text-sm text-amber-700" role="alert" data-testid="validation-hint">{validationHint}</p>}
+        {formError && <p className="text-sm text-red-600" role="alert" data-testid="form-error">{formError}</p>}
         {!allowedToScan && kind !== 'file' && (
-          <p className="text-sm text-amber-400" role="note">
+          <p className="text-sm text-amber-700" role="note">
             Scan persistence is unavailable (backend database down) — new scans are disabled for website and project targets.
           </p>
         )}
         {submittedScan && (
-          <p className="text-sm text-emerald-400" data-testid="submitted-scan-id">
+          <p className="text-sm text-emerald-700" data-testid="submitted-scan-id">
             VibeShield scan created — ID <span className="font-mono">{submittedScan.id}</span>{' '}
             ({submittedScan.status}). Results will be assembled below.
           </p>
@@ -297,7 +297,7 @@ export default function NewScanForm({
           role="dialog"
           aria-modal="true"
           aria-label="Confirm combined VirusTotal scan"
-          className="mt-4 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.4),rgba(69,26,3,0.2))] p-4 text-sm text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_-30px_rgba(251,191,36,0.9)]"
+          className="mt-4 rounded-xl border border-amber-500/30 bg-[linear-gradient(160deg,rgba(255,251,235,0.95),rgba(254,243,199,0.6))] p-4 text-sm text-amber-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_-30px_rgba(251,191,36,0.9)]"
           data-testid="vt-url-consent"
         >
           <p className="mb-2 font-medium">Confirm the combined scan and VirusTotal sharing</p>
@@ -313,7 +313,7 @@ export default function NewScanForm({
             <button
               type="button"
               onClick={() => void createScan(true)}
-              className="rounded-lg border border-amber-300/40 bg-gradient-to-b from-amber-400 to-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_0_rgba(120,53,15,0.9)]"
+              className="rounded-lg border border-amber-400/40 bg-gradient-to-b from-amber-400 to-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_0_rgba(255,251,235,0.95)]"
             >
               I agree — start combined scan
             </button>
@@ -321,7 +321,7 @@ export default function NewScanForm({
               <button
                 type="button"
                 onClick={() => void createScan(false)}
-                className="rounded-lg border border-amber-300/25 px-3 py-1.5 text-xs text-amber-100 hover:bg-amber-400/10"
+                className="rounded-lg border border-amber-400/25 px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-400/10"
               >
                 VibeShield only
               </button>

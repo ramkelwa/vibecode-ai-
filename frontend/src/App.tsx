@@ -253,7 +253,7 @@ export default function App() {
               <Menu className="h-4 w-4" aria-hidden />
             </button>
             <div className="min-w-0">
-              <p className="vin-kicker mb-1 !text-[9px] text-cyan-300/70">Security console</p>
+              <p className="vin-kicker mb-1 !text-[9px] text-cyan-700/70">Security console</p>
               <h1 className="vin-title text-2xl font-semibold tracking-tight md:text-[1.75rem]">
                 {VIEW_TITLES[view]}
               </h1>
@@ -267,15 +267,15 @@ export default function App() {
               <div className="flex flex-col items-end gap-1.5">
                 <span className="vin-status-chip">
                   <span
-                    className={`inline-block h-2 w-2 rounded-full ${health.status === 'ok' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
+                    className={`inline-block h-2 w-2 rounded-full ${health.status === 'ok' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(45,106,86,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
                     role="status"
                     aria-label={`API ${health.status}`}
                   />
                   API {health.status}
                 </span>
-                <span className={`vin-status-chip ${dbUp ? '' : '!text-red-300'}`}>
+                <span className={`vin-status-chip ${dbUp ? '' : '!text-red-700'}`}>
                   <span
-                    className={`inline-block h-2 w-2 rounded-full ${dbUp ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
+                    className={`inline-block h-2 w-2 rounded-full ${dbUp ? 'bg-emerald-400 shadow-[0_0_8px_rgba(45,106,86,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
                     role="status"
                     aria-label={dbUp ? 'database connected' : 'database unavailable'}
                   />
@@ -283,7 +283,7 @@ export default function App() {
                 </span>
               </div>
             ) : (
-              <span className="vin-status-chip !text-red-300">
+              <span className="vin-status-chip !text-red-700">
                 {healthError ? `API unreachable: ${healthError}` : 'Checking API…'}
               </span>
             )}

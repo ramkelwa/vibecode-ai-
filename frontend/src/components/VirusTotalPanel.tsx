@@ -213,7 +213,7 @@ export default function VirusTotalPanel({
       </p>
 
       {configured === false && (
-        <p className="mb-3 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.5),rgba(69,26,3,0.25))] p-2.5 text-xs text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_30px_-26px_rgba(245,158,11,0.7)]" role="note">
+        <p className="mb-3 rounded-xl border border-amber-500/30 bg-[linear-gradient(160deg,rgba(255,251,235,0.95),rgba(254,243,199,0.6))] p-2.5 text-xs text-amber-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_30px_-26px_rgba(245,158,11,0.7)]" role="note">
           VirusTotal is not configured on this server (missing API key). This panel is disabled.
         </p>
       )}
@@ -271,12 +271,12 @@ export default function VirusTotalPanel({
           aria-modal="true"
           aria-label="Confirm third-party submission"
           data-testid="vt-consent"
-          className="mt-3 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.5),rgba(69,26,3,0.28))] p-3 text-sm text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-26px_rgba(245,158,11,0.7)]"
+          className="mt-3 rounded-xl border border-amber-500/30 bg-[linear-gradient(160deg,rgba(255,251,235,0.95),rgba(254,243,199,0.6))] p-3 text-sm text-amber-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-26px_rgba(245,158,11,0.7)]"
         >
           <p className="mb-2 font-medium flex items-center gap-2">
             <ShieldAlert className="h-4 w-4" aria-hidden /> Share this URL with VirusTotal?
           </p>
-          <ul className="mb-2 list-disc pl-5 text-xs text-amber-200/90">
+          <ul className="mb-2 list-disc pl-5 text-xs text-amber-800/90">
             <li>
               The URL (full address incl.<b>query parameters</b>) is sent to the third-party
               service VirusTotal and may be stored and publicly shared per their terms.
@@ -289,14 +289,14 @@ export default function VirusTotalPanel({
               type="button"
               data-testid="vt-consent-confirm"
               onClick={() => void submitNewScan()}
-              className="rounded-lg border border-amber-300/40 bg-[linear-gradient(180deg,#fbbf24,#b45309)] px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_3px_0_#78350f]"
+              className="rounded-lg border border-amber-400/40 bg-[linear-gradient(180deg,#fbbf24,#b45309)] px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_3px_0_#78350f]"
             >
               I understand, submit
             </button>
             <button
               type="button"
               onClick={() => setConfirmOpen(false)}
-              className="vin-btn-ghost px-3 py-1.5 text-xs !text-amber-100"
+              className="vin-btn-ghost px-3 py-1.5 text-xs !text-amber-900"
             >
               Cancel
             </button>
@@ -376,7 +376,7 @@ export default function VirusTotalPanel({
               target="_blank"
               rel="noopener noreferrer"
               data-testid="vt-report-link"
-              className="mt-2 inline-flex items-center gap-1 text-xs text-cyan-300 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-200"
+              className="mt-2 inline-flex items-center gap-1 text-xs text-cyan-700 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-700"
             >
               <ExternalLink className="h-3 w-3" aria-hidden /> View report on VirusTotal
             </a>

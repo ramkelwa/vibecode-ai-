@@ -23,13 +23,13 @@ export default function ScanHistory({
       ) : scans.length === 0 ? (
         <EmptyState message="No scans recorded yet." hint="Start a scan from the New scan view." />
       ) : (
-        <ul className="divide-y divide-white/5 rounded-xl border border-white/5 bg-black/20 px-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)]">
+        <ul className="divide-y divide-slate-900/5 rounded-xl border border-slate-900/5 bg-slate-900/5 px-2 shadow-[inset_0_2px_8px_rgba(11,31,29,0.08)]">
           {scans.map((s) => (
             <li key={s.id}>
               <button
                 type="button"
                 onClick={() => onOpen(s.id)}
-                className="vin-row-hover w-full rounded-lg px-2 py-2.5 text-left transition-colors hover:text-cyan-200"
+                className="vin-row-hover w-full rounded-lg px-2 py-2.5 text-left transition-colors hover:text-cyan-700"
               >
                 <span className="flex items-center justify-between gap-2">
                   <span className="flex min-w-0 items-center gap-2 text-sm">

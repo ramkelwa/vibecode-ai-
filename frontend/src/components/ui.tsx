@@ -6,11 +6,11 @@ import type { Severity } from '../api'
 
 export const SEVERITY_CLASS: Record<Severity, string> = {
   critical:
-    'bg-severity-critical/20 text-fuchsia-300 border-severity-critical/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(162,28,175,0.8)]',
-  high: 'bg-severity-high/20 text-red-300 border-severity-high/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(220,38,38,0.8)]',
+    'bg-severity-critical/20 text-fuchsia-700 border-severity-critical/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(162,28,175,0.8)]',
+  high: 'bg-severity-high/20 text-red-700 border-severity-high/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(220,38,38,0.8)]',
   medium:
-    'bg-severity-medium/20 text-amber-300 border-severity-medium/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(217,119,6,0.7)]',
-  low: 'bg-severity-low/20 text-sky-300 border-severity-low/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(37,99,235,0.7)]',
+    'bg-severity-medium/20 text-amber-700 border-severity-medium/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(217,119,6,0.7)]',
+  low: 'bg-severity-low/20 text-sky-700 border-severity-low/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(37,99,235,0.7)]',
   info: 'bg-severity-info/20 text-slate-300 border-severity-info/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]',
 }
 
@@ -29,9 +29,9 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
 
 export function ConfidenceBadge({ confidence }: { confidence: string }) {
   const map: Record<string, string> = {
-    certain: 'text-emerald-300 border-emerald-700/60 bg-emerald-950/40',
-    firm: 'text-sky-300 border-sky-700/60 bg-sky-950/40',
-    uncertain: 'text-amber-300 border-amber-700/60 bg-amber-950/40',
+    certain: 'text-emerald-600 border-emerald-700/60 bg-emerald-50/40',
+    firm: 'text-sky-700 border-sky-700/60 bg-sky-50/40',
+    uncertain: 'text-amber-700 border-amber-700/60 bg-amber-50/40',
     unknown: 'text-slate-400 border-slate-700 bg-slate-900/60',
   }
   const c = map[confidence] ?? map.unknown
@@ -48,7 +48,7 @@ export function ConfidenceBadge({ confidence }: { confidence: string }) {
 export function StatusDot({ status, label }: { status: string; label?: string }) {
   const color =
     status === 'completed'
-      ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]'
+      ? 'bg-emerald-400 shadow-[0_0_10px_rgba(45,106,86,0.9)]'
       : status === 'running'
         ? 'bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.9)] animate-pulse'
         : status === 'failed'
@@ -88,7 +88,7 @@ export function Panel({
         <h2 className="flex items-center gap-2.5 text-sm font-semibold tracking-tight text-slate-200">
           <span
             aria-hidden
-            className="inline-block h-2.5 w-2.5 rounded-[3px] bg-gradient-to-br from-cyan-300 to-violet-500 shadow-[0_0_12px_rgba(56,232,255,0.8),inset_0_1px_0_rgba(255,255,255,0.6)]"
+            className="inline-block h-2.5 w-2.5 rounded-[3px] bg-gradient-to-br from-cyan-300 to-violet-500 shadow-[0_0_12px_rgba(45,106,86,0.8),inset_0_1px_0_rgba(255,255,255,0.6)]"
           />
           {title}
         </h2>
@@ -101,9 +101,9 @@ export function Panel({
 
 export function EmptyState({ message, hint }: { message: string; hint?: string }) {
   return (
-    <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-sky-300/15 bg-[radial-gradient(120%_120%_at_50%_0%,rgba(56,189,248,0.08),transparent_60%)] p-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <span className="mb-3 grid h-11 w-11 place-items-center rounded-xl border border-sky-300/20 bg-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_20px_-12px_rgba(56,189,248,0.9)]">
-        <ShieldCheck className="h-5 w-5 text-sky-300/80" aria-hidden />
+    <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-sky-300/15 bg-[radial-gradient(120%_120%_at_50%_0%,rgba(45,106,86,0.08),transparent_60%)] p-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+      <span className="mb-3 grid h-11 w-11 place-items-center rounded-xl border border-sky-300/20 bg-slate-900/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_20px_-12px_rgba(45,106,86,0.9)]">
+        <ShieldCheck className="h-5 w-5 text-sky-700/80" aria-hidden />
       </span>
       <p className="text-sm text-slate-400" role="note">
         {message}
@@ -134,15 +134,15 @@ export function ErrorState({
 }) {
   return (
     <div
-      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-500/30 bg-[linear-gradient(160deg,rgba(127,29,29,0.35),rgba(69,10,10,0.2))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_30px_-24px_rgba(239,68,68,0.8)]"
+      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-500/30 bg-[linear-gradient(160deg,rgba(254,242,242,0.95),rgba(255,251,251,0.9))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_14px_28px_-24px_rgba(220,38,38,0.45)]"
       role="alert"
     >
-      <p className="text-sm text-red-200">{message}</p>
+      <p className="text-sm text-red-700">{message}</p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="vin-btn-ghost px-2.5 py-1 text-xs !text-red-200"
+          className="vin-btn-ghost px-2.5 py-1 text-xs !text-red-700"
         >
           Retry
         </button>
@@ -158,7 +158,7 @@ export function SeverityBarCounts({ bySeverity }: { bySeverity: Record<string, n
   if (total === 0) return <p className="text-xs text-slate-500">No findings recorded.</p>
   return (
     <div
-      className="flex h-3 w-full overflow-hidden rounded-full border border-white/5 bg-slate-950/80 p-[2px] shadow-[inset_0_2px_6px_rgba(0,0,0,0.8)]"
+      className="flex h-3 w-full overflow-hidden rounded-full border border-slate-900/5 bg-slate-950 p-[2px] shadow-[inset_0_1px_3px_rgba(11,31,29,0.12)]"
       role="img"
       aria-label="findings by severity"
     >

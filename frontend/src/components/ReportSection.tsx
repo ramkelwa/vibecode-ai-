@@ -34,7 +34,7 @@ export default function ReportSection({
               <Kpi label="Correlation links" value={summary.counts.correlations_considered} />
             </dl>
             {summary.counts.malformed_skipped > 0 && (
-              <p className="text-xs text-amber-400" role="note">
+              <p className="text-xs text-amber-700" role="note">
                 {summary.counts.malformed_skipped} malformed record(s) skipped and recorded (no data
                 invented).
               </p>
@@ -48,7 +48,7 @@ export default function ReportSection({
               ) : (
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-slate-500">
+                    <tr className="border-b border-slate-900/10 text-slate-500">
                       <th className="pb-1 pr-2" scope="col">Priority</th>
                       <th className="pb-1 pr-2" scope="col">Severity</th>
                       <th className="pb-1 pr-2" scope="col">Title</th>
@@ -58,7 +58,7 @@ export default function ReportSection({
                   </thead>
                   <tbody>
                     {summary.prioritized.map((f) => (
-                      <tr key={f.id} className="border-b border-white/5 transition-colors hover:bg-white/[0.03]">
+                      <tr key={f.id} className="border-b border-slate-900/5 transition-colors hover:bg-slate-900/[0.03]">
                         <td className="py-1 pr-2 font-mono">{f.priority.toFixed(1)}</td>
                         <td className="py-1 pr-2"><SeverityBadge severity={f.severity} /></td>
                         <td className="py-1 pr-2">{f.title}</td>
@@ -104,7 +104,7 @@ function Kpi({ label, value }: { label: string; value: number }) {
   return (
     <div className="vin-tile p-3">
       <dt className="vin-kicker !text-[9px]">{label}</dt>
-      <dd className="mt-1.5 font-mono text-xl font-semibold tabular-nums text-cyan-200 drop-shadow-[0_0_10px_rgba(56,232,255,0.35)]">{value}</dd>
+      <dd className="mt-1.5 font-mono text-xl font-semibold tabular-nums text-cyan-700 drop-shadow-[0_0_10px_rgba(45,106,86,0.35)]">{value}</dd>
     </div>
   )
 }

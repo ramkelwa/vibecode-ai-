@@ -126,7 +126,7 @@ export default function VirusTotalFilePanel({ configured }: { configured: boolea
         Uploads may be retained and shared by VirusTotal. Do not select confidential files.
       </p>
       {configured === false && (
-        <p role="note" className="mb-3 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.5),rgba(69,26,3,0.25))] p-2.5 text-xs text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_30px_-26px_rgba(245,158,11,0.7)]">
+        <p role="note" className="mb-3 rounded-xl border border-amber-500/30 bg-[linear-gradient(160deg,rgba(255,251,235,0.95),rgba(254,243,199,0.6))] p-2.5 text-xs text-amber-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_30px_-26px_rgba(245,158,11,0.7)]">
           VirusTotal is not configured on this server. Configure its API key to enable file checks.
         </p>
       )}
@@ -138,7 +138,7 @@ export default function VirusTotalFilePanel({ configured }: { configured: boolea
         type="file"
         disabled={configured !== true || isBusy}
         onChange={(event) => chooseFile(event.currentTarget.files?.[0] ?? null)}
-        className="vin-input block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#12233b] file:px-3 file:py-2 file:text-xs file:text-slate-200 disabled:opacity-50"
+        className="vin-input block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#E6F7E4] file:px-3 file:py-2 file:text-xs file:text-slate-200 disabled:opacity-50"
       />
       {file && (
         <p className="mt-2 break-all text-xs text-slate-400">
@@ -162,24 +162,24 @@ export default function VirusTotalFilePanel({ configured }: { configured: boolea
         </div>
       )}
       {phase === 'confirm' && (
-        <div role="dialog" aria-modal="true" aria-label="Confirm file upload to VirusTotal" className="mt-3 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.5),rgba(69,26,3,0.28))] p-3 text-sm text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-26px_rgba(245,158,11,0.7)]">
+        <div role="dialog" aria-modal="true" aria-label="Confirm file upload to VirusTotal" className="mt-3 rounded-xl border border-amber-500/30 bg-[linear-gradient(160deg,rgba(255,251,235,0.95),rgba(254,243,199,0.6))] p-3 text-sm text-amber-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-26px_rgba(245,158,11,0.7)]">
           <p className="font-medium">Share this file with VirusTotal?</p>
           <p className="my-2 text-xs">
             The complete file, filename, and its hash will be sent to a third party for analysis.
             It may be retained and shared publicly. This is separate from VibeShield scanning.
           </p>
           <div className="flex gap-2">
-            <button type="button" onClick={() => void submitFile()} className="rounded-lg border border-amber-300/40 bg-[linear-gradient(180deg,#fbbf24,#b45309)] px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_3px_0_#78350f]">
+            <button type="button" onClick={() => void submitFile()} className="rounded-lg border border-amber-400/40 bg-[linear-gradient(180deg,#fbbf24,#b45309)] px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_3px_0_#78350f]">
               I understand, upload file
             </button>
-            <button type="button" onClick={() => setPhase('not_found')} className="vin-btn-ghost px-3 py-1.5 text-xs !text-amber-100">
+            <button type="button" onClick={() => setPhase('not_found')} className="vin-btn-ghost px-3 py-1.5 text-xs !text-amber-900">
               Cancel
             </button>
           </div>
         </div>
       )}
       {phase === 'error' && error && (
-        <p role="alert" className="mt-3 rounded-xl border border-red-500/30 bg-[linear-gradient(160deg,rgba(127,29,29,0.45),rgba(69,10,10,0.25))] p-2.5 text-xs text-red-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">{error}</p>
+        <p role="alert" className="mt-3 rounded-xl border border-red-500/30 bg-[linear-gradient(160deg,rgba(254,242,242,0.95),rgba(255,251,251,0.9))] p-2.5 text-xs text-red-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">{error}</p>
       )}
       {phase === 'done' && result && (
         <div className="vin-panel-soft mt-3 p-3" data-testid="vt-file-result">
@@ -202,7 +202,7 @@ export default function VirusTotalFilePanel({ configured }: { configured: boolea
             </p>
           )}
           {link && (
-            <a href={link} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-cyan-300 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-200">
+            <a href={link} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-cyan-700 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-700">
               View VirusTotal file report
             </a>
           )}

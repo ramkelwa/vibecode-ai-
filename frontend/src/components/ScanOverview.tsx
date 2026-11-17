@@ -75,17 +75,17 @@ export default function ScanOverview({
             No scans recorded yet.
           </p>
         ) : (
-          <ul className="divide-y divide-white/5 text-sm">
+          <ul className="divide-y divide-slate-900/5 text-sm">
             {latestScans.slice(0, 6).map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
                   onClick={() => onOpenScan(s.id)}
-                  className="vin-row-hover flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2.5 text-left transition-colors hover:text-cyan-300"
+                  className="vin-row-hover flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2.5 text-left transition-colors hover:text-cyan-700"
                 >
                   <span className="flex min-w-0 items-center gap-2.5">
                     <StatusDot status={s.status} />
-                    <span className="truncate rounded border border-white/5 bg-black/40 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">
+                    <span className="truncate rounded border border-slate-900/5 bg-slate-950 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">
                       {s.id.slice(0, 8)}
                     </span>
                     <span className="truncate">{s.target_url}</span>
@@ -102,11 +102,11 @@ export default function ScanOverview({
 }
 
 const ACCENTS: Record<string, string> = {
-  cyan: 'text-cyan-300 shadow-[0_0_22px_-6px_rgba(56,232,255,0.9)]',
-  amber: 'text-amber-300 shadow-[0_0_22px_-6px_rgba(252,211,77,0.9)]',
-  emerald: 'text-emerald-300 shadow-[0_0_22px_-6px_rgba(52,211,153,0.9)]',
-  red: 'text-red-300 shadow-[0_0_22px_-6px_rgba(248,113,113,0.9)]',
-  violet: 'text-violet-300 shadow-[0_0_22px_-6px_rgba(167,139,250,0.9)]',
+  cyan: 'text-cyan-700 shadow-[0_0_22px_-6px_rgba(45,106,86,0.9)]',
+  amber: 'text-amber-700 shadow-[0_0_22px_-6px_rgba(252,211,77,0.9)]',
+  emerald: 'text-emerald-600 shadow-[0_0_22px_-6px_rgba(45,106,86,0.9)]',
+  red: 'text-red-700 shadow-[0_0_22px_-6px_rgba(248,113,113,0.9)]',
+  violet: 'text-violet-700 shadow-[0_0_22px_-6px_rgba(167,139,250,0.9)]',
 }
 
 function Metric({
