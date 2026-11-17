@@ -1,3 +1,440 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   VibeShield — 3D interface layer
+   A single source of truth for the depth language: a perspective grid floor,
+   floating light orbs, glass panels, extruded tiles and beveled buttons.
+--------------------------------------------------------------------------- */
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --vin-cyan: 56 232 255;
+    --vin-violet: 167 139 250;
+    --vin-ink: 5 7 15;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-[#05070f] text-slate-200;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+  }
+
+  ::selection {
+    background: rgb(56 232 255 / 0.28);
+    color: #eaf6ff;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #1d3550 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(180deg, #1e3a58, #122033);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(56 232 255 / 0.7);
+    outline-offset: 2px;
+  }
+}
+
+/* --- scene ---------------------------------------------------------------- */
+
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 520px at 12% -8%, rgb(37 99 235 / 0.22), transparent 65%),
+    radial-gradient(760px 480px at 88% 0%, rgb(139 92 246 / 0.18), transparent 62%),
+    radial-gradient(900px 600px at 50% 120%, rgb(8 145 178 / 0.16), transparent 70%),
+    linear-gradient(180deg, #060912 0%, #05070f 45%, #03050b 100%);
+}
+
+.scene-grid {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  bottom: -12%;
+  height: 78vh;
+  background-image:
+    linear-gradient(to right, rgb(56 232 255 / 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(56 232 255 / 0.16) 1px, transparent 1px);
+  background-size: 58px 58px;
+  transform: perspective(620px) rotateX(74deg);
+  transform-origin: bottom center;
+  mask-image: linear-gradient(to top, rgb(0 0 0 / 0.9) 5%, transparent 78%);
+  -webkit-mask-image: linear-gradient(to top, rgb(0 0 0 / 0.9) 5%, transparent 78%);
+  animation: vin-grid-drift 22s linear infinite;
+}
+
+.scene-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(70px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.scene-orb-a {
+  top: -8rem;
+  left: -6rem;
+  width: 32rem;
+  height: 32rem;
+  background: radial-gradient(circle at 30% 30%, rgb(56 189 248 / 0.55), transparent 65%);
+  animation: vin-float 17s ease-in-out infinite;
+}
+.scene-orb-b {
+  top: 18%;
+  right: -10rem;
+  width: 34rem;
+  height: 34rem;
+  background: radial-gradient(circle at 60% 40%, rgb(139 92 246 / 0.42), transparent 66%);
+  animation: vin-float 21s ease-in-out infinite reverse;
+}
+.scene-orb-c {
+  bottom: -14rem;
+  left: 32%;
+  width: 30rem;
+  height: 30rem;
+  background: radial-gradient(circle at 50% 50%, rgb(34 211 238 / 0.32), transparent 68%);
+  animation: vin-float 26s ease-in-out infinite;
+}
+
+/* rotating wireframe horizon */
+.scene-rings {
+  position: absolute;
+  top: 12%;
+  right: 8%;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 999px;
+  border: 1px solid rgb(125 211 252 / 0.12);
+  box-shadow:
+    0 0 0 4rem rgb(125 211 252 / 0.02),
+    inset 0 0 80px rgb(56 189 248 / 0.06);
+  transform: rotateX(68deg) rotateZ(0deg);
+  animation: vin-spin 60s linear infinite;
+  opacity: 0.75;
+}
+.scene-rings::before,
+.scene-rings::after {
+  content: '';
+  position: absolute;
+  inset: 14%;
+  border-radius: 999px;
+  border: 1px dashed rgb(167 139 250 / 0.18);
+}
+.scene-rings::after {
+  inset: 32%;
+  border-style: solid;
+  border-color: rgb(56 232 255 / 0.16);
+}
+
+.scene-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22rem;
+  top: -22rem;
+  background: linear-gradient(to bottom, transparent, rgb(56 232 255 / 0.07), transparent);
+  animation: vin-sweep 9s linear infinite;
+}
+
+.scene-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.scene-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 45%, rgb(2 4 10 / 0.75) 100%);
+}
+
+/* --- depth tokens --------------------------------------------------------- */
+
+@layer components {
+  .vin-panel {
+    position: relative;
+    border-radius: 1.25rem;
+    border: 1px solid rgb(125 165 225 / 0.14);
+    background:
+      linear-gradient(158deg, rgb(23 34 58 / 0.82) 0%, rgb(11 17 31 / 0.9) 55%, rgb(7 11 22 / 0.94) 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 -1px 0 rgb(0 0 0 / 0.5),
+      0 1px 2px rgb(0 0 0 / 0.5),
+      0 28px 60px -34px rgb(0 0 0 / 0.95);
+    backdrop-filter: blur(16px) saturate(120%);
+  }
+
+  .vin-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(150deg, rgb(125 211 252 / 0.28), transparent 38%, transparent 70%, rgb(167 139 250 / 0.16));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .vin-panel-soft {
+    position: relative;
+    border-radius: 0.9rem;
+    border: 1px solid rgb(125 165 225 / 0.11);
+    background: linear-gradient(165deg, rgb(20 30 50 / 0.6), rgb(8 13 25 / 0.72));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 14px 30px -22px rgb(0 0 0 / 0.9);
+  }
+
+  /* Raised slab: reads as a physical block sitting on the panel. */
+  .vin-tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.85rem;
+    border: 1px solid rgb(125 165 225 / 0.16);
+    background: linear-gradient(170deg, rgb(27 41 68 / 0.95) 0%, rgb(13 21 38 / 0.98) 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.12),
+      inset 0 -6px 12px -8px rgb(0 0 0 / 0.9),
+      0 6px 0 -2px rgb(7 12 24 / 0.95),
+      0 14px 0 -6px rgb(4 8 16 / 0.6),
+      0 24px 34px -22px rgb(0 0 0 / 0.95);
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms ease, border-color 220ms ease;
+  }
+  .vin-tile::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgb(56 232 255 / 0.7), rgb(167 139 250 / 0.55), transparent);
+    opacity: 0.8;
+  }
+  .vin-tile:hover {
+    transform: translateY(-3px);
+    border-color: rgb(56 232 255 / 0.3);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.16),
+      inset 0 -6px 12px -8px rgb(0 0 0 / 0.9),
+      0 8px 0 -2px rgb(7 12 24 / 0.95),
+      0 16px 0 -6px rgb(4 8 16 / 0.6),
+      0 30px 45px -22px rgb(0 0 0 / 0.95),
+      0 0 32px -6px rgb(56 232 255 / 0.25);
+  }
+
+  /* Beveled button base. */
+  .vin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 0.6rem;
+    font-weight: 500;
+    transition: transform 140ms ease, box-shadow 140ms ease, background 160ms ease, color 160ms ease;
+  }
+  .vin-btn:active:not(:disabled) {
+    transform: translateY(2px);
+  }
+
+  .vin-btn-primary {
+    @apply vin-btn;
+    border: 1px solid rgb(103 232 249 / 0.5);
+    background: linear-gradient(180deg, #7ee8fb 0%, #22c3e0 55%, #0e9bbb 100%);
+    color: #041018;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.65),
+      inset 0 -2px 0 rgb(4 40 52 / 0.35),
+      0 4px 0 rgb(8 62 78),
+      0 12px 22px -10px rgb(34 211 238 / 0.6);
+  }
+  .vin-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.06);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.7),
+      inset 0 -2px 0 rgb(4 40 52 / 0.35),
+      0 4px 0 rgb(8 62 78),
+      0 16px 28px -10px rgb(34 211 238 / 0.75);
+  }
+  .vin-btn-primary:disabled {
+    opacity: 0.45;
+    box-shadow: none;
+  }
+
+  .vin-btn-ghost {
+    @apply vin-btn;
+    border: 1px solid rgb(125 165 225 / 0.22);
+    background: linear-gradient(180deg, rgb(28 42 68 / 0.85), rgb(13 21 38 / 0.9));
+    color: #cbd8ea;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 3px 0 rgb(6 11 22),
+      0 10px 18px -14px rgb(0 0 0 / 0.9);
+  }
+  .vin-btn-ghost:hover:not(:disabled) {
+    border-color: rgb(56 232 255 / 0.35);
+    color: #e6f6ff;
+    background: linear-gradient(180deg, rgb(34 52 82 / 0.9), rgb(15 25 45 / 0.95));
+  }
+  .vin-btn-ghost:disabled {
+    opacity: 0.45;
+  }
+
+  .vin-input {
+    border-radius: 0.6rem;
+    border: 1px solid rgb(125 165 225 / 0.2);
+    background: linear-gradient(180deg, rgb(5 9 18 / 0.95), rgb(9 15 28 / 0.95));
+    padding: 0.5rem 0.75rem;
+    color: #e2ecfa;
+    box-shadow:
+      inset 0 2px 4px rgb(0 0 0 / 0.6),
+      inset 0 -1px 0 rgb(255 255 255 / 0.04);
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .vin-input:focus {
+    border-color: rgb(56 232 255 / 0.55);
+    box-shadow:
+      inset 0 2px 4px rgb(0 0 0 / 0.6),
+      0 0 0 3px rgb(56 232 255 / 0.14);
+  }
+  .vin-input::placeholder {
+    color: #5b7290;
+  }
+
+  .vin-nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 0.7rem;
+    border: 1px solid transparent;
+    padding: 0.5rem 0.65rem;
+    text-align: left;
+    font-size: 0.8125rem;
+    color: #93a6bf;
+    transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .vin-nav-item:hover {
+    color: #e6f2ff;
+    background: rgb(30 46 74 / 0.55);
+    transform: translateX(2px);
+  }
+  .vin-nav-item[aria-current='page'] {
+    color: #eaf9ff;
+    border-color: rgb(56 232 255 / 0.28);
+    background: linear-gradient(100deg, rgb(8 145 178 / 0.35), rgb(56 189 248 / 0.08));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.12),
+      0 8px 18px -12px rgb(34 211 238 / 0.8);
+  }
+  .vin-nav-item[aria-current='page']::before {
+    content: '';
+    position: absolute;
+    left: -0.55rem;
+    top: 22%;
+    bottom: 22%;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #67e8f9, #8b5cf6);
+    box-shadow: 0 0 12px rgb(56 232 255 / 0.9);
+  }
+
+  /* Gradient display type with a soft 3D lift. */
+  .vin-title {
+    background: linear-gradient(180deg, #ffffff 0%, #cfe6fa 55%, #7fb6dd 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.06), 0 10px 30px rgb(56 189 248 / 0.18);
+  }
+
+  .vin-kicker {
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #7f9ec0;
+  }
+
+  .vin-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    border: 1px solid rgb(125 165 225 / 0.18);
+    background: linear-gradient(180deg, rgb(22 33 55 / 0.9), rgb(10 16 30 / 0.9));
+    padding: 0.2rem 0.6rem;
+    font-size: 0.6875rem;
+    color: #a9bdd6;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 6px 14px -12px #000;
+  }
+
+  .vin-row-hover:hover {
+    background: linear-gradient(90deg, rgb(56 232 255 / 0.07), transparent 70%);
+  }
+}
+
+/* --- motion --------------------------------------------------------------- */
+
+@keyframes vin-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -26px, 0) scale(1.05); }
+}
+
+@keyframes vin-grid-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 58px, 0 58px; }
+}
+
+@keyframes vin-spin {
+  from { transform: rotateX(68deg) rotateZ(0deg); }
+  to { transform: rotateX(68deg) rotateZ(360deg); }
+}
+
+@keyframes vin-sweep {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(140vh); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-grid,
+  .scene-orb,
+  .scene-rings,
+  .scene-sweep {
+    animation: none !important;
+  }
+  .vin-tile,
+  .vin-nav-item,
+  .vin-btn {
+    transition: none !important;
+  }
+  .vin-tile:hover,
+  .vin-nav-item:hover {
+    transform: none !important;
+  }
+}

@@ -5,11 +5,13 @@ import type { Severity } from '../api'
 // --- shared tokens ----------------------------------------------------------
 
 export const SEVERITY_CLASS: Record<Severity, string> = {
-  critical: 'bg-severity-critical/20 text-severity-critical border-severity-critical/40',
-  high: 'bg-severity-high/20 text-severity-high border-severity-high/40',
-  medium: 'bg-severity-medium/20 text-severity-medium border-severity-medium/40',
-  low: 'bg-severity-low/20 text-severity-low border-severity-low/40',
-  info: 'bg-severity-info/20 text-severity-info border-severity-info/40',
+  critical:
+    'bg-severity-critical/20 text-fuchsia-300 border-severity-critical/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(162,28,175,0.8)]',
+  high: 'bg-severity-high/20 text-red-300 border-severity-high/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(220,38,38,0.8)]',
+  medium:
+    'bg-severity-medium/20 text-amber-300 border-severity-medium/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(217,119,6,0.7)]',
+  low: 'bg-severity-low/20 text-sky-300 border-severity-low/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_16px_-4px_rgba(37,99,235,0.7)]',
+  info: 'bg-severity-info/20 text-slate-300 border-severity-info/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]',
 }
 
 export const SEVERITY_BAR = 'bg-severity-critical'
@@ -17,7 +19,7 @@ export const SEVERITY_BAR = 'bg-severity-critical'
 export function SeverityBadge({ severity }: { severity: Severity }) {
   return (
     <span
-      className={`rounded border px-1.5 py-0.5 text-xs font-medium uppercase ${SEVERITY_CLASS[severity] ?? SEVERITY_CLASS.info}`}
+      className={`rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${SEVERITY_CLASS[severity] ?? SEVERITY_CLASS.info}`}
       aria-label={`severity ${severity}`}
     >
       {severity}
@@ -27,14 +29,17 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
 
 export function ConfidenceBadge({ confidence }: { confidence: string }) {
   const map: Record<string, string> = {
-    certain: 'text-emerald-400 border-emerald-800',
-    firm: 'text-sky-400 border-sky-800',
-    uncertain: 'text-amber-400 border-amber-800',
-    unknown: 'text-slate-400 border-slate-700',
+    certain: 'text-emerald-300 border-emerald-700/60 bg-emerald-950/40',
+    firm: 'text-sky-300 border-sky-700/60 bg-sky-950/40',
+    uncertain: 'text-amber-300 border-amber-700/60 bg-amber-950/40',
+    unknown: 'text-slate-400 border-slate-700 bg-slate-900/60',
   }
   const c = map[confidence] ?? map.unknown
   return (
-    <span className={`rounded border px-1.5 py-0.5 text-xs ${c}`} aria-label={`confidence ${confidence}`}>
+    <span
+      className={`rounded-md border px-1.5 py-0.5 text-[10px] uppercase tracking-wider shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ${c}`}
+      aria-label={`confidence ${confidence}`}
+    >
       {confidence}
     </span>
   )
@@ -43,11 +48,11 @@ export function ConfidenceBadge({ confidence }: { confidence: string }) {
 export function StatusDot({ status, label }: { status: string; label?: string }) {
   const color =
     status === 'completed'
-      ? 'bg-emerald-500'
+      ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]'
       : status === 'running'
-        ? 'bg-amber-400 animate-pulse'
+        ? 'bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.9)] animate-pulse'
         : status === 'failed'
-          ? 'bg-red-500'
+          ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)]'
           : status === 'cancelled'
             ? 'bg-slate-500'
             : status === 'skipped'
@@ -76,11 +81,17 @@ export function Panel({
   return (
     <section
       data-testid={testId}
-      className="rounded-lg border border-slate-800 bg-slate-900/60 p-4"
+      className="vin-panel p-4 md:p-5"
       aria-label={title}
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-medium text-slate-300">{title}</h2>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2.5 text-sm font-semibold tracking-tight text-slate-200">
+          <span
+            aria-hidden
+            className="inline-block h-2.5 w-2.5 rounded-[3px] bg-gradient-to-br from-cyan-300 to-violet-500 shadow-[0_0_12px_rgba(56,232,255,0.8),inset_0_1px_0_rgba(255,255,255,0.6)]"
+          />
+          {title}
+        </h2>
         {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
       </div>
       {children}
@@ -90,9 +101,11 @@ export function Panel({
 
 export function EmptyState({ message, hint }: { message: string; hint?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded border border-dashed border-slate-800 p-8 text-center">
-      <ShieldCheck className="mb-2 h-6 w-6 text-slate-600" aria-hidden />
-      <p className="text-sm text-slate-500" role="note">
+    <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-sky-300/15 bg-[radial-gradient(120%_120%_at_50%_0%,rgba(56,189,248,0.08),transparent_60%)] p-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+      <span className="mb-3 grid h-11 w-11 place-items-center rounded-xl border border-sky-300/20 bg-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_20px_-12px_rgba(56,189,248,0.9)]">
+        <ShieldCheck className="h-5 w-5 text-sky-300/80" aria-hidden />
+      </span>
+      <p className="text-sm text-slate-400" role="note">
         {message}
       </p>
       {hint && <p className="mt-1 max-w-md text-xs text-slate-600">{hint}</p>}
@@ -102,8 +115,11 @@ export function EmptyState({ message, hint }: { message: string; hint?: string }
 
 export function LoadingState({ label = 'Loading…' }: { label?: string }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-slate-500" role="status">
-      <span className="h-2 w-2 animate-pulse rounded-full bg-sky-500" aria-hidden />
+    <div className="flex items-center gap-2.5 text-sm text-slate-400" role="status">
+      <span className="relative grid h-4 w-4 place-items-center" aria-hidden>
+        <span className="absolute inset-0 rounded-full border border-cyan-300/25" />
+        <span className="h-1.5 w-1.5 animate-ping rounded-full bg-cyan-300" />
+      </span>
       {label}
     </div>
   )
@@ -118,15 +134,15 @@ export function ErrorState({
 }) {
   return (
     <div
-      className="flex flex-wrap items-center justify-between gap-2 rounded border border-red-900 bg-red-950/40 p-3"
+      className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-500/30 bg-[linear-gradient(160deg,rgba(127,29,29,0.35),rgba(69,10,10,0.2))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_30px_-24px_rgba(239,68,68,0.8)]"
       role="alert"
     >
-      <p className="text-sm text-red-400">{message}</p>
+      <p className="text-sm text-red-200">{message}</p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="rounded border border-red-800 px-2 py-1 text-xs text-red-300 hover:bg-red-900/40"
+          className="vin-btn-ghost px-2.5 py-1 text-xs !text-red-200"
         >
           Retry
         </button>
@@ -142,7 +158,7 @@ export function SeverityBarCounts({ bySeverity }: { bySeverity: Record<string, n
   if (total === 0) return <p className="text-xs text-slate-500">No findings recorded.</p>
   return (
     <div
-      className="flex h-2.5 w-full overflow-hidden rounded bg-slate-800"
+      className="flex h-3 w-full overflow-hidden rounded-full border border-white/5 bg-slate-950/80 p-[2px] shadow-[inset_0_2px_6px_rgba(0,0,0,0.8)]"
       role="img"
       aria-label="findings by severity"
     >
@@ -150,17 +166,17 @@ export function SeverityBarCounts({ bySeverity }: { bySeverity: Record<string, n
         const n = bySeverity[sev] ?? 0
         if (!n) return null
         const colors: Record<string, string> = {
-          critical: 'bg-severity-critical',
-          high: 'bg-severity-high',
-          medium: 'bg-severity-medium',
-          low: 'bg-severity-low',
+          critical: 'bg-severity-critical shadow-[0_0_12px_rgba(162,28,175,0.9)]',
+          high: 'bg-severity-high shadow-[0_0_12px_rgba(220,38,38,0.9)]',
+          medium: 'bg-severity-medium shadow-[0_0_12px_rgba(217,119,6,0.8)]',
+          low: 'bg-severity-low shadow-[0_0_12px_rgba(37,99,235,0.8)]',
           info: 'bg-severity-info',
           unknown: 'bg-slate-500',
         }
         return (
           <span
             key={sev}
-            className={colors[sev]}
+            className={`h-full first:rounded-l-full last:rounded-r-full ${colors[sev]}`}
             style={{ width: `${(n / total) * 100}%` }}
             title={`${sev}: ${n}`}
           />

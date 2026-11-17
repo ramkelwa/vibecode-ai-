@@ -23,6 +23,7 @@ import CombinedScanReport from './components/CombinedScanReport'
 import VirusTotalPanel from './components/VirusTotalPanel'
 import VirusTotalFilePanel from './components/VirusTotalFilePanel'
 import { ErrorState } from './components/ui'
+import Scene3D from './components/Scene3D'
 
 const VIEW_TITLES: Record<ViewKey, string> = {
   overview: 'Overview',
@@ -229,7 +230,8 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="relative flex min-h-screen flex-col md:flex-row">
+      <Scene3D />
       <Sidebar
         active={view}
         onSelect={(v) => {
@@ -238,49 +240,50 @@ export default function App() {
         }}
         opened={navOpen}
       />
-      <main className="w-full flex-1 px-4 py-6">
-        <header className="mb-6 flex items-start justify-between gap-3">
-          <div>
+      <main className="relative z-10 w-full min-w-0 flex-1 px-4 pb-10 pt-4 md:max-w-[calc(100%-16.5rem)] md:pr-6">
+        <header className="vin-panel mb-6 flex items-start justify-between gap-3 !rounded-2xl px-4 py-3.5 md:px-5">
+          <div className="flex min-w-0 items-start gap-2">
             <button
               type="button"
-              className="mb-2 rounded border border-slate-700 p-1 text-slate-400 md:hidden"
+              className="vin-btn-ghost mt-0.5 p-1.5 md:hidden"
               aria-label="Toggle navigation"
               aria-expanded={navOpen}
               onClick={() => setNavOpen((v) => !v)}
             >
               <Menu className="h-4 w-4" aria-hidden />
             </button>
-            <h1 className="text-xl font-semibold tracking-tight text-slate-200">
-              {VIEW_TITLES[view]}
-            </h1>
-            <p className="text-xs text-slate-500">
-              Passive web security assessment — real backend data only
-            </p>
+            <div className="min-w-0">
+              <p className="vin-kicker mb-1 !text-[9px] text-cyan-300/70">Security console</p>
+              <h1 className="vin-title text-2xl font-semibold tracking-tight md:text-[1.75rem]">
+                {VIEW_TITLES[view]}
+              </h1>
+              <p className="mt-0.5 truncate text-xs text-slate-500">
+                Passive web security assessment — real backend data only
+              </p>
+            </div>
           </div>
-          <div className="text-right text-xs" data-testid="backend-status">
+          <div className="shrink-0 text-right text-xs" data-testid="backend-status">
             {health ? (
-              <>
-                <div className="flex items-center justify-end gap-1.5">
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="vin-status-chip">
                   <span
-                    className={`inline-block h-2 w-2 rounded-full ${health.status === 'ok' ? 'bg-emerald-500' : 'bg-red-500'}`}
+                    className={`inline-block h-2 w-2 rounded-full ${health.status === 'ok' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
                     role="status"
                     aria-label={`API ${health.status}`}
                   />
-                  <span className="text-slate-400">API {health.status}</span>
-                </div>
-                <div className="mt-0.5 flex items-center justify-end gap-1.5">
+                  API {health.status}
+                </span>
+                <span className={`vin-status-chip ${dbUp ? '' : '!text-red-300'}`}>
                   <span
-                    className={`inline-block h-2 w-2 rounded-full ${dbUp ? 'bg-emerald-500' : 'bg-red-500'}`}
+                    className={`inline-block h-2 w-2 rounded-full ${dbUp ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
                     role="status"
                     aria-label={dbUp ? 'database connected' : 'database unavailable'}
                   />
-                  <span className={dbUp ? 'text-slate-400' : 'text-red-400'}>
-                    Database {dbUp ? 'connected' : 'unavailable'}
-                  </span>
-                </div>
-              </>
+                  Database {dbUp ? 'connected' : 'unavailable'}
+                </span>
+              </div>
             ) : (
-              <span className="text-red-400">
+              <span className="vin-status-chip !text-red-300">
                 {healthError ? `API unreachable: ${healthError}` : 'Checking API…'}
               </span>
             )}

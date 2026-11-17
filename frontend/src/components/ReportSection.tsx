@@ -48,7 +48,7 @@ export default function ReportSection({
               ) : (
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-500">
+                    <tr className="border-b border-white/10 text-slate-500">
                       <th className="pb-1 pr-2" scope="col">Priority</th>
                       <th className="pb-1 pr-2" scope="col">Severity</th>
                       <th className="pb-1 pr-2" scope="col">Title</th>
@@ -58,7 +58,7 @@ export default function ReportSection({
                   </thead>
                   <tbody>
                     {summary.prioritized.map((f) => (
-                      <tr key={f.id} className="border-b border-slate-900">
+                      <tr key={f.id} className="border-b border-white/5 transition-colors hover:bg-white/[0.03]">
                         <td className="py-1 pr-2 font-mono">{f.priority.toFixed(1)}</td>
                         <td className="py-1 pr-2"><SeverityBadge severity={f.severity} /></td>
                         <td className="py-1 pr-2">{f.title}</td>
@@ -85,7 +85,7 @@ export default function ReportSection({
         ) : (
           <ul className="space-y-2">
             {correlations.map((c) => (
-              <li key={c.id} className="rounded border border-slate-800 p-2 text-xs" data-testid="correlation-item">
+              <li key={c.id} className="vin-panel-soft p-3 text-xs" data-testid="correlation-item">
                 <div className="font-mono text-slate-500">{c.relation}</div>
                 <div className="text-slate-300">
                   {c.finding_title} ↔ {c.related_title}
@@ -102,9 +102,9 @@ export default function ReportSection({
 
 function Kpi({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded border border-slate-800 bg-slate-950/60 p-3">
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="mt-1 font-mono text-lg text-slate-200">{value}</dd>
+    <div className="vin-tile p-3">
+      <dt className="vin-kicker !text-[9px]">{label}</dt>
+      <dd className="mt-1.5 font-mono text-xl font-semibold tabular-nums text-cyan-200 drop-shadow-[0_0_10px_rgba(56,232,255,0.35)]">{value}</dd>
     </div>
   )
 }

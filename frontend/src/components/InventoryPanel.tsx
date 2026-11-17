@@ -14,7 +14,7 @@ export default function InventoryPanel({
     return (
       <Panel title="Endpoint & script inventory" testId="inventory-panel">
         {artifactsError}
-        <button type="button" onClick={onRetryArtifacts} className="ml-3 text-xs text-sky-400 underline">
+        <button type="button" onClick={onRetryArtifacts} className="vin-btn-ghost ml-3 px-2 py-1 text-xs">
           Retry
         </button>
       </Panel>
@@ -100,10 +100,10 @@ export default function InventoryPanel({
 
 function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-xl border border-white/5 bg-black/20 p-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)]">
       <table className="w-full text-left text-xs">
         <thead>
-          <tr className="border-b border-slate-800 text-slate-500">
+          <tr className="border-b border-white/10 text-slate-500">
             {head.map((h, i) => (
               <th key={i} className="pb-1 pr-3" scope="col">
                 {h}
@@ -113,7 +113,7 @@ function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} className="border-b border-slate-900">
+            <tr key={i} className="border-b border-white/5 transition-colors hover:bg-white/[0.03]">
               {r.map((cell, j) => (
                 <td key={j} className="py-1.5 pr-3 text-slate-300">
                   {cell}

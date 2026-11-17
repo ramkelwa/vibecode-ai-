@@ -213,7 +213,7 @@ export default function VirusTotalPanel({
       </p>
 
       {configured === false && (
-        <p className="mb-3 rounded border border-amber-900 bg-amber-950/40 p-2 text-xs text-amber-300" role="note">
+        <p className="mb-3 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.5),rgba(69,26,3,0.25))] p-2.5 text-xs text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_30px_-26px_rgba(245,158,11,0.7)]" role="note">
           VirusTotal is not configured on this server (missing API key). This panel is disabled.
         </p>
       )}
@@ -244,12 +244,12 @@ export default function VirusTotalPanel({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://target.example.com"
-            className="flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-sky-600"
+            className="vin-input flex-1 text-sm"
           />
           <button
             type="submit"
             disabled={busy || configured === false}
-            className="rounded bg-sky-800 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+            className="vin-btn-primary px-3 py-2 text-sm"
           >
             Check with VirusTotal
           </button>
@@ -257,7 +257,7 @@ export default function VirusTotalPanel({
             type="button"
             disabled={busy || configured === false}
             onClick={startSubmitFlow}
-            className="rounded border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-900 disabled:opacity-50"
+            className="vin-btn-ghost px-3 py-2 text-sm"
           >
             Submit new scan
           </button>
@@ -271,7 +271,7 @@ export default function VirusTotalPanel({
           aria-modal="true"
           aria-label="Confirm third-party submission"
           data-testid="vt-consent"
-          className="mt-3 rounded border border-amber-900 bg-amber-950/40 p-3 text-sm text-amber-200"
+          className="mt-3 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.5),rgba(69,26,3,0.28))] p-3 text-sm text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_-26px_rgba(245,158,11,0.7)]"
         >
           <p className="mb-2 font-medium flex items-center gap-2">
             <ShieldAlert className="h-4 w-4" aria-hidden /> Share this URL with VirusTotal?
@@ -289,14 +289,14 @@ export default function VirusTotalPanel({
               type="button"
               data-testid="vt-consent-confirm"
               onClick={() => void submitNewScan()}
-              className="rounded bg-amber-700 px-3 py-1 text-xs font-medium text-white hover:bg-amber-600"
+              className="rounded-lg border border-amber-300/40 bg-[linear-gradient(180deg,#fbbf24,#b45309)] px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_3px_0_#78350f]"
             >
               I understand, submit
             </button>
             <button
               type="button"
               onClick={() => setConfirmOpen(false)}
-              className="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200"
+              className="vin-btn-ghost px-3 py-1.5 text-xs !text-amber-100"
             >
               Cancel
             </button>
@@ -329,7 +329,7 @@ export default function VirusTotalPanel({
       )}
 
       {showResult && result && (
-        <div className="mt-3 rounded border border-slate-800 bg-slate-950/60 p-3" data-testid="vt-result">
+        <div className="vin-panel-soft mt-3 p-3" data-testid="vt-result">
           <p className="mb-1 text-xs font-medium text-slate-400">
             <span role="status" aria-label={STATUS_LABELS[phase] ?? result.status}>
               ● {STATUS_LABELS[phase] ?? result.status}
@@ -376,7 +376,7 @@ export default function VirusTotalPanel({
               target="_blank"
               rel="noopener noreferrer"
               data-testid="vt-report-link"
-              className="mt-2 inline-flex items-center gap-1 text-xs text-sky-400 underline"
+              className="mt-2 inline-flex items-center gap-1 text-xs text-cyan-300 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-200"
             >
               <ExternalLink className="h-3 w-3" aria-hidden /> View report on VirusTotal
             </a>

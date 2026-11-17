@@ -136,8 +136,10 @@ export default function NewScanForm({
             aria-selected={kind === scanKind}
             disabled={sharePromptOpen || pending}
             onClick={() => setKind(scanKind)}
-            className={`rounded px-3 py-1 text-xs font-medium ${
-              kind === scanKind ? 'bg-sky-900/60 text-sky-300' : 'text-slate-400 hover:text-slate-200'
+            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+              kind === scanKind
+                ? 'border-cyan-300/40 bg-gradient-to-b from-cyan-400/25 to-cyan-500/5 text-cyan-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_20px_-8px_rgba(56,232,255,0.9)]'
+                : 'border-white/5 bg-white/[0.02] text-slate-400 hover:border-white/10 hover:text-slate-200'
             }`}
           >
             {scanKind === 'website'
@@ -165,13 +167,13 @@ export default function NewScanForm({
                 value={targetUrl}
                 onChange={(event) => setTargetUrl(event.target.value)}
                 placeholder="https://target.example.com"
-                className="min-w-60 flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-sky-600"
+                className="vin-input min-w-60 flex-1 text-sm"
               />
               <button
                 type="submit"
                 disabled={pending || !allowedToScan}
                 aria-busy={pending}
-                className="rounded bg-sky-700 px-4 py-2 text-sm font-medium hover:bg-sky-600 disabled:opacity-50"
+                className="vin-btn-primary px-4 py-2 text-sm"
               >
                 {pending ? 'Starting…' : 'Start combined scan'}
               </button>
@@ -209,7 +211,7 @@ export default function NewScanForm({
               type="file"
               disabled={sharePromptOpen || pending || !virustotalConfigured}
               onChange={(event) => setSelectedFile(event.currentTarget.files?.[0] ?? null)}
-              className="block w-full text-sm text-slate-300 file:mr-3 file:rounded file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:text-slate-200 disabled:opacity-50"
+              className="block w-full rounded-xl text-sm text-slate-300 file:mr-3 file:rounded-lg file:border file:border-white/10 file:bg-gradient-to-b file:from-slate-700 file:to-slate-800 file:px-3 file:py-2 file:text-xs file:text-slate-200 file:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] hover:file:brightness-110 disabled:opacity-50"
             />
             {selectedFile && (
               <p className="break-all text-xs text-slate-400">
@@ -243,13 +245,13 @@ export default function NewScanForm({
                 value={projectDir}
                 onChange={(event) => setProjectDir(event.target.value)}
                 placeholder="C:\\Users\\you\\projects\\app"
-                className="flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-sky-600"
+                className="vin-input flex-1 text-sm"
               />
               <button
                 type="submit"
                 disabled={pending || !allowedToScan}
                 aria-busy={pending}
-                className="rounded bg-sky-700 px-4 py-2 text-sm font-medium hover:bg-sky-600 disabled:opacity-50"
+                className="vin-btn-primary px-4 py-2 text-sm"
               >
                 {pending ? 'Starting…' : 'Start project scan'}
               </button>
@@ -295,7 +297,7 @@ export default function NewScanForm({
           role="dialog"
           aria-modal="true"
           aria-label="Confirm combined VirusTotal scan"
-          className="mt-3 rounded border border-amber-900 bg-amber-950/40 p-3 text-sm text-amber-200"
+          className="mt-4 rounded-xl border border-amber-400/30 bg-[linear-gradient(160deg,rgba(120,53,15,0.4),rgba(69,26,3,0.2))] p-4 text-sm text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_-30px_rgba(251,191,36,0.9)]"
           data-testid="vt-url-consent"
         >
           <p className="mb-2 font-medium">Confirm the combined scan and VirusTotal sharing</p>
@@ -311,7 +313,7 @@ export default function NewScanForm({
             <button
               type="button"
               onClick={() => void createScan(true)}
-              className="rounded bg-amber-700 px-3 py-1 text-xs font-medium text-white hover:bg-amber-600"
+              className="rounded-lg border border-amber-300/40 bg-gradient-to-b from-amber-400 to-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_0_rgba(120,53,15,0.9)]"
             >
               I agree — start combined scan
             </button>
@@ -319,7 +321,7 @@ export default function NewScanForm({
               <button
                 type="button"
                 onClick={() => void createScan(false)}
-                className="rounded border border-amber-800 px-3 py-1 text-xs text-amber-200"
+                className="rounded-lg border border-amber-300/25 px-3 py-1.5 text-xs text-amber-100 hover:bg-amber-400/10"
               >
                 VibeShield only
               </button>
@@ -327,7 +329,7 @@ export default function NewScanForm({
             <button
               type="button"
               onClick={() => setSharePromptOpen(false)}
-              className="rounded border border-slate-700 px-3 py-1 text-xs text-slate-300"
+              className="vin-btn-ghost px-3 py-1.5 text-xs"
             >
               Cancel
             </button>

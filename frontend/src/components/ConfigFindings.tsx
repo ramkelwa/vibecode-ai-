@@ -18,7 +18,7 @@ export default function ConfigFindings({
         {configFindings.length === 0 ? (
           <EmptyState message="No configuration findings recorded for this scan." />
         ) : (
-          <ul className="divide-y divide-slate-900 text-sm">
+          <ul className="divide-y divide-white/5 rounded-xl border border-white/5 bg-black/20 px-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)] text-sm">
             {configFindings.map((f) => (
               <li key={f.id} className="flex items-center gap-2 py-1.5">
                 <SeverityBadge severity={f.severity} />
@@ -43,7 +43,7 @@ export default function ConfigFindings({
             </p>
             <ul className="space-y-1">
               {depAudit.tool_runs.map((t, i) => (
-                <li key={i} className="rounded border border-slate-800 p-2">
+                <li key={i} className="vin-panel-soft p-2.5">
                   <span className="font-mono text-slate-300">{String(t.tool ?? '?')}</span>{' '}
                   <span className={String(t.status).includes('ok') || String(t.status) === 'no_findings' || String(t.status) === 'completed' ? 'text-emerald-400' : 'text-amber-400'}>
                     {String(t.status ?? '?')}

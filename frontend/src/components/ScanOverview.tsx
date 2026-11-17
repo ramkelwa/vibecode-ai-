@@ -37,7 +37,7 @@ export default function ScanOverview({
           <button
             type="button"
             onClick={() => onSelect('new-scan')}
-            className="rounded bg-sky-700 px-2.5 py-1 text-xs font-medium hover:bg-sky-600"
+            className="vin-btn-primary px-3 py-1.5 text-xs"
           >
             Start new scan
           </button>
@@ -49,14 +49,15 @@ export default function ScanOverview({
           <LoadingState label="Loading overview…" />
         ) : metrics ? (
           <dl className="grid grid-cols-2 gap-3 text-sm md:grid-cols-5" data-testid="overview-metrics">
-            <Metric label="Total scans" value={metrics.totalScans} />
-            <Metric label="Running" value={metrics.running} />
-            <Metric label="Completed" value={metrics.completed} />
+            <Metric label="Total scans" value={metrics.totalScans} accent="cyan" />
+            <Metric label="Running" value={metrics.running} accent="amber" />
+            <Metric label="Completed" value={metrics.completed} accent="emerald" />
             <Metric
               label="Failed / cancelled"
               value={metrics.failedOrCancelled}
+              accent="red"
             />
-            <Metric label="Findings stored" value={metrics.findingsTotal} />
+            <Metric label="Findings stored" value={metrics.findingsTotal} accent="violet" />
           </dl>
         ) : null}
         {error && metrics ? null : null}
@@ -74,17 +75,17 @@ export default function ScanOverview({
             No scans recorded yet.
           </p>
         ) : (
-          <ul className="divide-y divide-slate-900 text-sm">
+          <ul className="divide-y divide-white/5 text-sm">
             {latestScans.slice(0, 6).map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
                   onClick={() => onOpenScan(s.id)}
-                  className="flex w-full items-center justify-between gap-2 py-2 text-left hover:text-sky-400"
+                  className="vin-row-hover flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2.5 text-left transition-colors hover:text-cyan-300"
                 >
-                  <span className="flex min-w-0 items-center gap-2">
+                  <span className="flex min-w-0 items-center gap-2.5">
                     <StatusDot status={s.status} />
-                    <span className="truncate font-mono text-xs text-slate-500">
+                    <span className="truncate rounded border border-white/5 bg-black/40 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">
                       {s.id.slice(0, 8)}
                     </span>
                     <span className="truncate">{s.target_url}</span>
@@ -100,11 +101,29 @@ export default function ScanOverview({
   )
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+const ACCENTS: Record<string, string> = {
+  cyan: 'text-cyan-300 shadow-[0_0_22px_-6px_rgba(56,232,255,0.9)]',
+  amber: 'text-amber-300 shadow-[0_0_22px_-6px_rgba(252,211,77,0.9)]',
+  emerald: 'text-emerald-300 shadow-[0_0_22px_-6px_rgba(52,211,153,0.9)]',
+  red: 'text-red-300 shadow-[0_0_22px_-6px_rgba(248,113,113,0.9)]',
+  violet: 'text-violet-300 shadow-[0_0_22px_-6px_rgba(167,139,250,0.9)]',
+}
+
+function Metric({
+  label,
+  value,
+  accent = 'cyan',
+}: {
+  label: string
+  value: number
+  accent?: keyof typeof ACCENTS
+}) {
   return (
-    <div className="rounded border border-slate-800 bg-slate-950/60 p-3">
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="mt-1 font-mono text-lg text-slate-200">{value}</dd>
+    <div className="vin-tile p-3.5" data-testid="overview-metric">
+      <dt className="vin-kicker !text-[9px]">{label}</dt>
+      <dd className={`mt-1.5 font-mono text-2xl font-semibold tabular-nums ${ACCENTS[accent]}`}>
+        {value}
+      </dd>
     </div>
   )
 }

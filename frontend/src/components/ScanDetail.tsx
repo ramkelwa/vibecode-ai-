@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FileJson, FileText, Sparkles, XCircle } from 'lucide-react'
 import {
   api,
   ApiError,
   reportUrls,
   type AiExplanation,
+  type AiProviderStatus,
   type ScanDetail as ScanDetailData,
   type ScanStage,
 } from '../api'
@@ -26,6 +27,30 @@ export default function ScanDetail({
   const [explainPendingId, setExplainPendingId] = useState<string | null>(null)
   const [explanations, setExplanations] = useState<Record<string, AiExplanation>>({})
   const [explainErrors, setExplainErrors] = useState<Record<string, string>>({})
+  // Whether a real AI provider exists is server state, not something the UI can
+  // assume: with the "offline" family the explain action returns a local
+  // rule-based interpretation. The button must say so before it is clicked.
+  const [aiStatus, setAiStatus] = useState<AiProviderStatus | null>(null)
+  const aiStatusLoaded = useRef(false)
+  const scanId = detail?.scan.id ?? null
+  useEffect(() => {
+    // Only ask once a scan is actually displayed: an empty report shell must not
+    // add background requests of its own.
+    if (!scanId || aiStatusLoaded.current) return
+    aiStatusLoaded.current = true
+    let cancelled = false
+    api
+      .aiProviderStatus()
+      .then((status) => {
+        if (!cancelled) setAiStatus(status)
+      })
+      .catch(() => {
+        if (!cancelled) setAiStatus(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [scanId])
 
   if (!detail) {
     return (
@@ -71,6 +96,7 @@ export default function ScanDetail({
   }
 
   const failed = stages.filter((s) => s.status === 'failed')
+  const aiEnabled = aiStatus?.enabled === true
 
   return (
     <div className="space-y-4">
@@ -84,7 +110,7 @@ export default function ScanDetail({
               onClick={cancel}
               disabled={cancelPending}
               aria-busy={cancelPending}
-              className="flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+              className="vin-btn-ghost flex items-center gap-1 px-2 py-1 text-xs disabled:opacity-50"
             >
               <XCircle className="h-3.5 w-3.5" aria-hidden />
               {cancelPending ? 'Cancelling…' : 'Cancel scan'}
@@ -94,7 +120,7 @@ export default function ScanDetail({
               <button
                 type="button"
                 onClick={onFocusFindings}
-                className="rounded border border-sky-800 px-2 py-1 text-xs text-sky-300 hover:bg-sky-900/40"
+                className="vin-btn-primary px-2.5 py-1 text-xs"
               >
                 Open findings
               </button>
@@ -104,7 +130,7 @@ export default function ScanDetail({
                     href={downloads.json}
                     download
                     data-testid="download-json-report"
-                    className="flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800"
+                    className="vin-btn-ghost flex items-center gap-1 px-2 py-1 text-xs"
                   >
                     <FileJson className="h-3.5 w-3.5" aria-hidden />
                     JSON report
@@ -113,7 +139,7 @@ export default function ScanDetail({
                     href={downloads.pdf}
                     download
                     data-testid="download-pdf-report"
-                    className="flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800"
+                    className="vin-btn-ghost flex items-center gap-1 px-2 py-1 text-xs"
                   >
                     <FileText className="h-3.5 w-3.5" aria-hidden />
                     PDF report
@@ -165,7 +191,7 @@ export default function ScanDetail({
             Module stages ({stages.filter((s) => s.status === 'completed').length}/{stages.length}{' '}
             completed)
           </div>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1.5 rounded-xl border border-white/5 bg-black/20 p-3 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]">
             {stages.map((s: ScanStage) => (
               <li key={s.module} className="flex items-center gap-2 text-sm">
                 <StatusDot status={s.status} />
@@ -194,6 +220,20 @@ export default function ScanDetail({
       </Panel>
 
       <Panel title={`Findings stored for this scan (${findings.length})`}>
+        {aiStatus && !aiEnabled && (
+          <p
+            className="mb-3 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-xs text-slate-400"
+            role="note"
+            data-testid="ai-provider-note"
+          >
+            AI explanations are off: no AI provider is configured on this server, so
+            &ldquo;Explain locally&rdquo; builds a rule-based interpretation from the stored
+            finding fields. Set{' '}
+            <span className="font-mono text-slate-500">AI_PROVIDER_FAMILY</span> and{' '}
+            <span className="font-mono text-slate-500">AI_API_KEY</span> on the backend to enable
+            AI-generated text.
+          </p>
+        )}
         {findings.length === 0 ? (
           <p className="text-sm text-slate-500" role="note">
             No findings recorded by this scan's modules.
@@ -204,7 +244,7 @@ export default function ScanDetail({
               const explanation = explanations[f.id]
               const explainError = explainErrors[f.id]
               return (
-                <li key={f.id} className="border-b border-slate-900 py-1">
+                <li key={f.id} className="border-b border-white/5 py-1.5">
                   <div className="flex items-center gap-2">
                     <SeverityBadge severity={f.severity} />
                     <span className="min-w-0 flex-1 truncate" title={f.title}>
@@ -216,10 +256,21 @@ export default function ScanDetail({
                       disabled={explainPendingId !== null}
                       aria-busy={explainPendingId === f.id}
                       data-testid={`explain-finding-${f.id}`}
-                      className="flex shrink-0 items-center gap-1 rounded border border-violet-700 px-2 py-0.5 text-xs text-violet-300 hover:bg-violet-900/40 disabled:opacity-50"
+                      title={
+                        aiEnabled
+                          ? 'Ask the configured AI provider to interpret this finding'
+                          : 'No AI provider configured — build a local interpretation from stored data'
+                      }
+                      className="vin-btn-ghost flex shrink-0 items-center gap-1 !border-violet-400/30 px-2 py-0.5 text-xs !text-violet-200 disabled:opacity-50"
                     >
                       <Sparkles className="h-3 w-3" aria-hidden />
-                      {explainPendingId === f.id ? 'Asking…' : 'Explain'}
+                      {explainPendingId === f.id
+                        ? aiEnabled
+                          ? 'Asking…'
+                          : 'Working…'
+                        : aiEnabled
+                          ? 'Explain with AI'
+                          : 'Explain locally'}
                     </button>
                     <span className="shrink-0 font-mono text-xs text-slate-600">{f.source_module}</span>
                   </div>
@@ -228,7 +279,7 @@ export default function ScanDetail({
                      note rather than as an AI-generated interpretation. */}
                   {explanation && (
                     <div
-                      className="mt-1.5 rounded border border-violet-900/60 bg-violet-950/30 p-2 text-xs"
+                      className="mt-1.5 rounded-lg border border-violet-400/25 bg-[linear-gradient(160deg,rgba(76,29,149,0.3),rgba(30,27,75,0.15))] p-2.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_24px_-18px_rgba(139,92,246,0.9)]"
                       data-testid={`ai-explanation-${f.id}`}
                       role={explanation.text ? 'note' : 'alert'}
                     >
@@ -247,7 +298,12 @@ export default function ScanDetail({
                           {explanation.error || 'AI explanation is not available for this scan.'}
                         </p>
                       )}
-                      {explanation.warning && <p className="mt-1 text-amber-400">{explanation.warning}</p>}
+                      {/* The offline provider states "no AI provider" in its text, its
+                         label and its warning; render the warning only when it adds
+                         information the label does not already carry. */}
+                      {explanation.warning && explanation.provider !== 'local' && (
+                        <p className="mt-1 text-amber-400">{explanation.warning}</p>
+                      )}
                     </div>
                   )}
                   {explainError && (

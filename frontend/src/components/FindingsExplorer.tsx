@@ -91,7 +91,7 @@ export default function FindingsExplorer({
               }}
               placeholder="title, asset, module…"
               aria-label="Search findings"
-              className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-sky-600"
+              className="vin-input text-sm"
             />
           </label>
           <SelectFilter
@@ -131,7 +131,7 @@ export default function FindingsExplorer({
               resetPaging()
             }}
             aria-label="Sort findings"
-            className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs outline-none focus:border-sky-600"
+            className="vin-input py-1 text-xs"
           >
             {SORTS.map((s) => (
               <option key={s.key} value={s.key}>
@@ -162,13 +162,13 @@ export default function FindingsExplorer({
           <EmptyState message="No findings match the current filters." hint="Adjust search or filters." />
         ) : (
           <>
-            <ul className="divide-y divide-slate-900" data-testid="explorer-list">
+            <ul className="divide-y divide-white/5 rounded-xl border border-white/5 bg-black/20 px-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.45)]" data-testid="explorer-list">
               {pageItems.map((f) => (
                 <li key={f.id}>
                   <button
                     type="button"
                     onClick={() => setSelected(f)}
-                    className="flex w-full items-center gap-2 py-2 text-left text-sm hover:text-sky-400"
+                    className="flex w-full items-center gap-2 rounded-lg px-1 py-2.5 text-left text-sm transition-colors hover:text-cyan-300"
                     aria-label={`finding ${f.title}`}
                   >
                     <SeverityBadge severity={f.severity} />
@@ -191,8 +191,7 @@ export default function FindingsExplorer({
                     type="button"
                     aria-label="Previous page"
                     disabled={safePage === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    className="rounded border border-slate-700 p-1 text-slate-400 disabled:opacity-40"
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}                      className="vin-btn-ghost p-1.5 !text-slate-300 disabled:opacity-40"
                   >
                     <ChevronLeft className="h-4 w-4" aria-hidden />
                   </button>
@@ -200,8 +199,7 @@ export default function FindingsExplorer({
                     type="button"
                     aria-label="Next page"
                     disabled={safePage >= pageCount - 1}
-                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                    className="rounded border border-slate-700 p-1 text-slate-400 disabled:opacity-40"
+                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}                      className="vin-btn-ghost p-1.5 !text-slate-300 disabled:opacity-40"
                   >
                     <ChevronRight className="h-4 w-4" aria-hidden />
                   </button>
@@ -235,7 +233,7 @@ function SelectFilter({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         aria-label={label}
-        className="rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm outline-none focus:border-sky-600"
+        className="vin-input py-1.5 text-sm"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -257,7 +255,7 @@ export function FindingDetail({ finding, onClose }: { finding: Finding; onClose:
           type="button"
           onClick={onClose}
           aria-label="Close finding detail"
-          className="rounded border border-slate-700 px-2 py-0.5 text-xs text-slate-400 hover:text-slate-200"
+          className="vin-btn-ghost px-2.5 py-0.5 text-xs"
         >
           Close
         </button>
@@ -278,7 +276,7 @@ export function FindingDetail({ finding, onClose }: { finding: Finding; onClose:
         <Row
           label="Evidence (redacted by the source module)"
           value={
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded bg-slate-950 p-2 text-[11px] text-slate-400">
+            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-white/5 bg-black/40 p-2.5 text-[11px] text-slate-400 shadow-[inset_0_2px_8px_rgba(0,0,0,0.6)]">
               {JSON.stringify(finding.evidence ?? {}, null, 2)}
             </pre>
           }
