@@ -191,7 +191,7 @@ export default function ScanDetail({
             Module stages ({stages.filter((s) => s.status === 'completed').length}/{stages.length}{' '}
             completed)
           </div>
-          <ul className="space-y-1.5 rounded-none border border-slate-900/5 bg-slate-900/5 p-3">
+          <ul className="space-y-1.5 rounded-none border border-white/5 bg-white/[0.04] p-3">
             {stages.map((s: ScanStage) => (
               <li key={s.module} className="flex items-center gap-2 text-sm">
                 <StatusDot status={s.status} />
@@ -202,7 +202,7 @@ export default function ScanDetail({
             ))}
           </ul>
           {failed.length > 0 && (
-            <p className="mt-2 text-xs text-amber-700" role="note" data-testid="partial-failures">
+            <p className="mt-2 text-xs text-amber-300" role="note" data-testid="partial-failures">
               {failed.length} module stage(s) failed ({failed.map((s) => STAGE_LABEL[s.module] ?? s.module).join(', ')}); results cover the modules that completed.
             </p>
           )}
@@ -222,7 +222,7 @@ export default function ScanDetail({
       <Panel title={`Findings stored for this scan (${findings.length})`}>
         {aiStatus && !aiEnabled && (
           <p
-            className="mb-3 rounded-sm border border-slate-900/10 bg-slate-900/[0.03] px-2.5 py-1.5 text-xs text-slate-400"
+            className="mb-3 rounded-sm border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-xs text-slate-400"
             role="note"
             data-testid="ai-provider-note"
           >
@@ -244,7 +244,7 @@ export default function ScanDetail({
               const explanation = explanations[f.id]
               const explainError = explainErrors[f.id]
               return (
-                <li key={f.id} className="border-b border-slate-900/5 py-1.5">
+                <li key={f.id} className="border-b border-white/5 py-1.5">
                   <div className="flex items-center gap-2">
                     <SeverityBadge severity={f.severity} />
                     <span className="min-w-0 flex-1 truncate" title={f.title}>
@@ -261,7 +261,7 @@ export default function ScanDetail({
                           ? 'Ask the configured AI provider to interpret this finding'
                           : 'No AI provider configured — build a local interpretation from stored data'
                       }
-                      className="vin-btn-ghost flex shrink-0 items-center gap-1 !border-violet-400/30 px-2 py-0.5 text-xs !text-violet-700 disabled:opacity-50"
+                      className="vin-btn-ghost flex shrink-0 items-center gap-1 !border-violet-400/30 px-2 py-0.5 text-xs !text-violet-300 disabled:opacity-50"
                     >
                       <Sparkles className="h-3 w-3" aria-hidden />
                       {explainPendingId === f.id
@@ -283,7 +283,7 @@ export default function ScanDetail({
                       data-testid={`ai-explanation-${f.id}`}
                       role={explanation.text ? 'note' : 'alert'}
                     >
-                      <p className="mb-1 flex items-center gap-1 font-medium text-violet-700">
+                      <p className="mb-1 flex items-center gap-1 font-medium text-violet-300">
                         {explanation.label}
                         {!explanation.text && (
                           <>
@@ -294,7 +294,7 @@ export default function ScanDetail({
                       {explanation.text ? (
                         <p className="whitespace-pre-wrap text-slate-300">{explanation.text}</p>
                       ) : (
-                        <p className="text-amber-700">
+                        <p className="text-amber-300">
                           {explanation.error || 'AI explanation is not available for this scan.'}
                         </p>
                       )}
@@ -302,12 +302,12 @@ export default function ScanDetail({
                          label and its warning; render the warning only when it adds
                          information the label does not already carry. */}
                       {explanation.warning && explanation.provider !== 'local' && (
-                        <p className="mt-1 text-amber-700">{explanation.warning}</p>
+                        <p className="mt-1 text-amber-300">{explanation.warning}</p>
                       )}
                     </div>
                   )}
                   {explainError && (
-                    <p className="mt-1 text-xs text-amber-700" role="alert">
+                    <p className="mt-1 text-xs text-amber-300" role="alert">
                       AI explanation unavailable: {explainError}
                     </p>
                   )}

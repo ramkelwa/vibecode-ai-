@@ -13,9 +13,9 @@ export interface OverviewMetrics {
 
 const TONES: Record<string, string> = {
   ink: 'text-slate-100',
-  emerald: 'text-emerald-700',
-  amber: 'text-amber-700',
-  red: 'text-red-700',
+  emerald: 'text-emerald-300',
+  amber: 'text-amber-300',
+  red: 'text-red-300',
 }
 
 export default function ScanOverview({

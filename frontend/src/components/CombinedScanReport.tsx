@@ -231,7 +231,7 @@ export default function CombinedScanReport({
             )}
           </div>
           <div className="vin-panel-soft p-3">
-            <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-700">
+            <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-300">
               VirusTotal Threat Intelligence
             </h3>
             <p className="text-xs text-slate-400">
@@ -256,12 +256,12 @@ export default function CombinedScanReport({
                           : 'VirusTotal report is ready.'}
               </p>
             ) : (
-              <p className="mt-2 text-xs text-amber-700">
+              <p className="mt-2 text-xs text-amber-300">
                 VirusTotal is not configured on this backend. VibeShield results are unaffected.
               </p>
             )}
             {virusTotal.status === 'error' && (
-              <p role="alert" className="mt-2 text-xs text-red-700">{virusTotal.error}</p>
+              <p role="alert" className="mt-2 text-xs text-red-300">{virusTotal.error}</p>
             )}
           </div>
         </div>
@@ -310,9 +310,9 @@ export default function CombinedScanReport({
             }
           />
         ) : result?.engine_results?.length ? (
-          <div className="max-h-96 overflow-auto rounded-none border border-slate-900/10 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="max-h-96 overflow-auto rounded-none border border-white/10 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-white text-slate-400">
+              <thead className="sticky top-0 bg-slate-950 text-slate-400">
                 <tr>
                   <th className="p-2">Engine</th>
                   <th className="p-2">Verdict</th>
@@ -323,7 +323,7 @@ export default function CombinedScanReport({
               </thead>
               <tbody>
                 {result.engine_results.map((engine) => (
-                  <tr key={engine.engine} className="border-t border-slate-900/5">
+                  <tr key={engine.engine} className="border-t border-white/5">
                     <td className="p-2 font-medium text-slate-200">{engine.engine}</td>
                     <td className="p-2 text-slate-300">
                       {categoryLabel[engine.category] ?? engine.category}

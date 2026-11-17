@@ -128,7 +128,7 @@ export default function NewScanForm({
   return (
     <Panel title="Start a new scan" testId="new-scan-panel">
       <div
-        className="mb-5 flex flex-wrap items-baseline gap-x-2 border-b border-slate-900/10"
+        className="mb-5 flex flex-wrap items-baseline gap-x-2 border-b border-white/10"
         role="tablist"
         aria-label="scan type"
       >
@@ -211,7 +211,7 @@ export default function NewScanForm({
               type="file"
               disabled={sharePromptOpen || pending || !virustotalConfigured}
               onChange={(event) => setSelectedFile(event.currentTarget.files?.[0] ?? null)}
-              className="vin-input block w-full text-sm file:mr-3 file:rounded-full file:border file:border-slate-900/20 file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:text-slate-300 hover:file:border-slate-900/40 disabled:opacity-50"
+              className="vin-input block w-full text-sm file:mr-3 file:rounded-full file:border file:border-white/20 file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:text-slate-300 hover:file:border-white/40 disabled:opacity-50"
             />
             {selectedFile && (
               <p className="break-all text-xs text-slate-400">
@@ -277,15 +277,15 @@ export default function NewScanForm({
           </>
         )}
 
-        {validationHint && <p className="text-sm text-amber-700" role="alert" data-testid="validation-hint">{validationHint}</p>}
+        {validationHint && <p className="text-sm text-amber-300" role="alert" data-testid="validation-hint">{validationHint}</p>}
         {formError && <p className="text-sm text-red-600" role="alert" data-testid="form-error">{formError}</p>}
         {!allowedToScan && kind !== 'file' && (
-          <p className="text-sm text-amber-700" role="note">
+          <p className="text-sm text-amber-300" role="note">
             Scan persistence is unavailable (backend database down) — new scans are disabled for website and project targets.
           </p>
         )}
         {submittedScan && (
-          <p className="text-sm text-emerald-700" data-testid="submitted-scan-id">
+          <p className="text-sm text-emerald-300" data-testid="submitted-scan-id">
             VibeShield scan created — ID <span className="font-mono">{submittedScan.id}</span>{' '}
             ({submittedScan.status}). Results will be assembled below.
           </p>
@@ -313,7 +313,7 @@ export default function NewScanForm({
             <button
               type="button"
               onClick={() => void createScan(true)}
-              className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-amber-700"
+              className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-slate-950 transition-colors hover:bg-amber-700"
             >
               I agree — start combined scan
             </button>
@@ -321,7 +321,7 @@ export default function NewScanForm({
               <button
                 type="button"
                 onClick={() => void createScan(false)}
-                className="rounded-full border border-amber-600/40 px-3.5 py-1.5 text-xs text-amber-800 transition-colors hover:border-amber-600"
+                className="rounded-full border border-amber-600/40 px-3.5 py-1.5 text-xs text-amber-300 transition-colors hover:border-amber-600"
               >
                 VibeShield only
               </button>

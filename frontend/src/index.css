@@ -4,22 +4,22 @@
 
 /* ---------------------------------------------------------------------------
    VibeShield — editorial interface layer
-   After Preymaker (DashDigital): paper and ink, hairline rules, oversized tight
-   type, rows that answer the cursor. One source of truth for the whole look —
-   no gradients, no glass, no drop shadows.
+   After Preymaker (DashDigital), inverted: matte black and warm white, hairline
+   rules, oversized tight type, rows that answer the cursor. One source of truth
+   for the whole look — no gradients, no glass, no drop shadows.
 --------------------------------------------------------------------------- */
 
 @layer base {
   :root {
-    color-scheme: light;
-    --vin-ink: #2a2a2a;
-    --vin-paper: #ffffff;
-    --vin-bone: #f3f2ed;
-    --vin-bone-deep: #ecebe4;
-    --vin-hair: rgb(42 42 42 / 0.14);
-    --vin-hair-soft: rgb(42 42 42 / 0.08);
-    --vin-muted: #6e6e68;
-    --vin-faint: #9a9992;
+    color-scheme: dark;
+    --vin-ink: #f6f5f0;
+    --vin-paper: #0f0f0e;
+    --vin-bone: #1a1a18;
+    --vin-bone-deep: #232320;
+    --vin-hair: rgb(246 245 240 / 0.16);
+    --vin-hair-soft: rgb(246 245 240 / 0.09);
+    --vin-muted: #a5a49c;
+    --vin-faint: #7a7973;
   }
 
   html {
@@ -29,7 +29,7 @@
   }
 
   body {
-    @apply bg-white;
+    background: var(--vin-paper);
     color: var(--vin-ink);
     font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-feature-settings: 'ss01', 'cv01', 'cv05';
@@ -37,12 +37,12 @@
 
   ::selection {
     background: var(--vin-ink);
-    color: #fff;
+    color: var(--vin-paper);
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgb(42 42 42 / 0.22) transparent;
+    scrollbar-color: rgb(246 245 240 / 0.22) transparent;
   }
   *::-webkit-scrollbar {
     width: 8px;
@@ -53,7 +53,7 @@
   }
   *::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: rgb(42 42 42 / 0.2);
+    background: rgb(246 245 240 / 0.2);
   }
 
   :focus-visible {
@@ -79,8 +79,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgb(42 42 42 / 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(42 42 42 / 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgb(246 245 240 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(246 245 240 / 0.035) 1px, transparent 1px);
   background-size: 12.5vw 25vh;
   mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 85%);
   -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 85%);
@@ -89,7 +89,7 @@
 .scene-noise {
   position: absolute;
   inset: 0;
-  opacity: 0.028;
+  opacity: 0.02;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -153,7 +153,7 @@
     position: relative;
     border: 1px solid var(--vin-hair);
     border-radius: 2px;
-    background: var(--vin-paper);
+    background: var(--vin-bone);
     box-shadow: none;
   }
 
@@ -197,29 +197,29 @@
     @apply vin-btn;
     border: 1px solid var(--vin-ink);
     background: var(--vin-ink);
-    color: #fff;
+    color: #0f0f0e;
   }
   .vin-btn-primary:hover:not(:disabled) {
-    background: #fff;
+    background: transparent;
     color: var(--vin-ink);
   }
   .vin-btn-primary:disabled {
-    opacity: 0.3;
+    opacity: 0.35;
   }
 
   .vin-btn-ghost {
     @apply vin-btn;
     border: 1px solid var(--vin-hair);
-    background: #fff;
+    background: transparent;
     color: var(--vin-ink);
   }
   .vin-btn-ghost:hover:not(:disabled) {
     border-color: var(--vin-ink);
     background: var(--vin-ink);
-    color: #fff;
+    color: #0f0f0e;
   }
   .vin-btn-ghost:disabled {
-    opacity: 0.3;
+    opacity: 0.35;
   }
 
   /* --- fields: underline, like a form on paper --------------------------- */
@@ -237,7 +237,7 @@
       background 0.2s ease;
   }
   .vin-input:hover {
-    border-bottom-color: rgb(42 42 42 / 0.34);
+    border-bottom-color: rgb(246 245 240 / 0.36);
   }
   .vin-input:focus {
     border-bottom-color: var(--vin-ink);
@@ -396,8 +396,10 @@
   .vin-marquee {
     position: relative;
     overflow: hidden;
-    background: var(--vin-ink);
-    color: #fff;
+    background: var(--vin-bone-deep);
+    color: var(--vin-ink);
+    border-top: 1px solid var(--vin-hair);
+    border-bottom: 1px solid var(--vin-hair);
     padding: 0.6rem 0;
   }
   .vin-marquee-track {
@@ -445,7 +447,7 @@
     content: attr(data-label);
     font-size: 9px;
     letter-spacing: 0.18em;
-    color: #fff;
+    color: #0f0f0e;
     opacity: 0;
     transition: opacity 0.18s ease;
   }

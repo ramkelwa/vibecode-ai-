@@ -162,7 +162,7 @@ export default function FindingsExplorer({
           <EmptyState message="No findings match the current filters." hint="Adjust search or filters." />
         ) : (
           <>
-            <ul className="divide-y divide-slate-900/5 rounded-none border border-slate-900/5 bg-slate-900/5 px-2" data-testid="explorer-list">
+            <ul className="divide-y divide-white/5 rounded-none border border-white/5 bg-white/[0.04] px-2" data-testid="explorer-list">
               {pageItems.map((f) => (
                 <li key={f.id}>
                   <button
@@ -276,7 +276,7 @@ export function FindingDetail({ finding, onClose }: { finding: Finding; onClose:
         <Row
           label="Evidence (redacted by the source module)"
           value={
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-sm border border-slate-900/5 bg-slate-950 p-2.5 text-[11px] text-slate-400">
+            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-sm border border-white/5 bg-slate-950 p-2.5 text-[11px] text-slate-400">
               {JSON.stringify(finding.evidence ?? {}, null, 2)}
             </pre>
           }

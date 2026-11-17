@@ -1,11 +1,13 @@
 /**
  * Tailwind configuration for VibeShield AI frontend.
  *
- * Design language: editorial black-on-white, after Preymaker (DashDigital).
- * Two colours carry almost everything — paper #FFFFFF and ink #2A2A2A — with
- * hairline rules instead of cards, shadows or gradients. The ramps below are
+ * Design language: editorial interface on matte black — the Preymaker
+ * (DashDigital) typographic system inverted. Two colours carry almost
+ * everything — matte black #0F0F0E and warm white #F6F5F0 — with hairline
+ * rules instead of cards, shadows or gradients. The ramps below are
  * inversion-compatible with the class names already used across the app, so
- * `text-slate-100` resolves to ink and `bg-slate-950` to the bone surface.
+ * `text-slate-100` resolves to warm white and `bg-slate-950` to the raised
+ * matte surface.
  */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
@@ -23,82 +25,82 @@ export default {
       },
       colors: {
         slate: {
-          50: '#f7f6f2', // bone wash
-          100: '#2a2a2a', // primary ink (headings)
-          200: '#232323',
-          300: '#3d3d3a', // body copy
-          400: '#6e6e68', // muted
-          500: '#6e6e68',
-          600: '#9a9992', // faint / captions
-          700: '#b5b4ac',
-          800: '#d8d7cf', // hairline (as a solid)
-          900: '#2a2a2a', // ink, used at low opacity for rules
-          950: '#f3f2ed', // bone surface (chips, code blocks)
+          50: '#171716', // raised matte surface
+          100: '#f6f5f0', // primary white (headings)
+          200: '#eae9e3',
+          300: '#cfcec7', // body copy
+          400: '#a5a49c', // muted
+          500: '#8b8a83',
+          600: '#7a7973', // faint / captions
+          700: '#3a3a36', // hairline (as a solid)
+          800: '#2a2a27',
+          900: '#1f1f1d', // raised block, used at low opacity for rules
+          950: '#121211', // matte surface (chips, code blocks)
         },
-        /* Interaction accent: the ink itself, so links and focus read as type. */
+        /* Interaction accent: warm white itself, so links and focus read as type. */
         cyan: {
-          50: '#f7f6f2',
-          100: '#ecebe4',
-          200: '#dcdbd3',
-          300: '#b5b4ac',
-          400: '#8a8981',
-          500: '#5a5a54',
-          600: '#3d3d3a',
-          700: '#2a2a2a',
-          800: '#1f1f1f',
-          900: '#171717',
-          950: '#0f0f0f',
+          50: '#171716',
+          100: '#1f1f1d',
+          200: '#2a2a27',
+          300: '#6a6963',
+          400: '#8b8a83',
+          500: '#a5a49c',
+          600: '#cfcec7',
+          700: '#edece6',
+          800: '#f6f5f0',
+          900: '#fbfaf6',
+          950: '#ffffff',
         },
         sky: {
-          50: '#f7f6f2',
-          100: '#ecebe4',
-          200: '#dcdbd3',
-          300: '#b5b4ac',
-          400: '#8a8981',
-          500: '#5a5a54',
-          600: '#3d3d3a',
-          700: '#2a2a2a',
-          800: '#1f1f1f',
-          900: '#171717',
-          950: '#0f0f0f',
+          50: '#171716',
+          100: '#1f1f1d',
+          200: '#2a2a27',
+          300: '#6a6963',
+          400: '#8b8a83',
+          500: '#a5a49c',
+          600: '#cfcec7',
+          700: '#edece6',
+          800: '#f6f5f0',
+          900: '#fbfaf6',
+          950: '#ffffff',
         },
         /* Machine-written text (AI explanations) gets one warm stone accent so it
-           can never be mistaken for scanner evidence. */
+           can never be mistaken for scanner evidence. Lightened for dark ground. */
         violet: {
-          100: '#efe8da',
-          200: '#e0d5c1',
+          100: '#2a2418',
+          200: '#3c3322',
           300: '#c9b795',
           400: '#ad9a75',
           500: '#8f7c56',
           600: '#7a6844',
-          700: '#665636',
-          800: '#54462c',
-          900: '#443a26',
-          950: '#221d13',
+          700: '#d9c49b',
+          800: '#e8d9ba',
+          900: '#f2e8d4',
+          950: '#fbf6ec',
         },
         /* Success keeps a quiet green: status is meaning, not decoration. */
         emerald: {
-          100: '#e6f2e9',
-          200: '#c9e4d2',
-          300: '#9bcbb0',
-          400: '#6fae8a',
-          500: '#4c8f6c',
-          600: '#3a7a59',
-          700: '#2f6b4f',
-          800: '#275842',
-          900: '#204836',
-          950: '#10241b',
+          100: '#12241a',
+          200: '#193327',
+          300: '#8ad4ab',
+          400: '#6fbf93',
+          500: '#58a97d',
+          600: '#4fa57b',
+          700: '#8ad4ab',
+          800: '#b2e6c8',
+          900: '#d6f3e2',
+          950: '#ecfaf1',
         },
         /*
          * Severity keeps distinct hues: a risky finding must never read as the
-         * black editorial accent. Only `info` stays neutral.
+         * white editorial accent. Values are lifted to stay legible on black.
          */
         severity: {
-          critical: '#a21caf',
-          high: '#c02626',
-          medium: '#b45309',
-          low: '#1f5fa8',
-          info: '#6e6e68',
+          critical: '#e879f9',
+          high: '#f87171',
+          medium: '#f0a64b',
+          low: '#7eb6f2',
+          info: '#8b8a83',
         },
       },
     },

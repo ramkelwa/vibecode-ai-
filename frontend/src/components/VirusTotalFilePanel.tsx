@@ -169,7 +169,7 @@ export default function VirusTotalFilePanel({ configured }: { configured: boolea
             It may be retained and shared publicly. This is separate from VibeShield scanning.
           </p>
           <div className="flex gap-2">
-            <button type="button" onClick={() => void submitFile()} className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-amber-700">
+            <button type="button" onClick={() => void submitFile()} className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-slate-950 transition-colors hover:bg-amber-700">
               I understand, upload file
             </button>
             <button type="button" onClick={() => setPhase('not_found')} className="vin-btn-ghost px-3 py-1.5 text-xs ">
@@ -179,7 +179,7 @@ export default function VirusTotalFilePanel({ configured }: { configured: boolea
         </div>
       )}
       {phase === 'error' && error && (
-        <p role="alert" className="mt-3 border-l-2 border-red-600 bg-slate-50 p-2.5 text-xs text-red-700">{error}</p>
+        <p role="alert" className="mt-3 border-l-2 border-red-600 bg-slate-50 p-2.5 text-xs text-red-300">{error}</p>
       )}
       {phase === 'done' && result && (
         <div className="vin-panel-soft mt-3 p-3" data-testid="vt-file-result">

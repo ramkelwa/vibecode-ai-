@@ -100,10 +100,10 @@ export default function InventoryPanel({
 
 function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   return (
-    <div className="overflow-x-auto rounded-none border border-slate-900/5 bg-slate-900/5 p-2">
+    <div className="overflow-x-auto rounded-none border border-white/5 bg-white/[0.04] p-2">
       <table className="w-full text-left text-xs">
         <thead>
-          <tr className="border-b border-slate-900/10 text-slate-500">
+          <tr className="border-b border-white/10 text-slate-500">
             {head.map((h, i) => (
               <th key={i} className="pb-1 pr-3" scope="col">
                 {h}
@@ -113,7 +113,7 @@ function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} className="border-b border-slate-900/5 transition-colors hover:bg-slate-900/[0.03]">
+            <tr key={i} className="border-b border-white/5 transition-colors hover:bg-white/[0.03]">
               {r.map((cell, j) => (
                 <td key={j} className="py-1.5 pr-3 text-slate-300">
                   {cell}

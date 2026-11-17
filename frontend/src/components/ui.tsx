@@ -11,7 +11,7 @@ export const SEVERITY_CLASS: Record<Severity, string> = {
   high: 'border-severity-high/60 text-severity-high',
   medium: 'border-severity-medium/60 text-severity-medium',
   low: 'border-severity-low/60 text-severity-low',
-  info: 'border-slate-900/20 text-slate-400',
+  info: 'border-white/20 text-slate-400',
 }
 
 export const SEVERITY_BAR = 'bg-severity-critical'
@@ -29,10 +29,10 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
 
 export function ConfidenceBadge({ confidence }: { confidence: string }) {
   const map: Record<string, string> = {
-    certain: 'text-emerald-700 border-emerald-700/50',
-    firm: 'text-slate-300 border-slate-900/25',
-    uncertain: 'text-amber-700 border-amber-700/50',
-    unknown: 'text-slate-500 border-slate-900/20',
+    certain: 'text-emerald-300 border-emerald-700/50',
+    firm: 'text-slate-300 border-white/25',
+    uncertain: 'text-amber-300 border-amber-700/50',
+    unknown: 'text-slate-500 border-white/20',
   }
   const c = map[confidence] ?? map.unknown
   return (
@@ -96,7 +96,7 @@ export function Panel({
 
 export function EmptyState({ message, hint }: { message: string; hint?: string }) {
   return (
-    <div className="flex flex-col items-start gap-2 border border-dashed border-slate-900/15 px-6 py-8">
+    <div className="flex flex-col items-start gap-2 border border-dashed border-white/15 px-6 py-8">
       <ShieldCheck className="mb-1 h-4 w-4 text-slate-500" aria-hidden />
       <p className="text-sm text-slate-300" role="note">
         {message}
@@ -127,7 +127,7 @@ export function ErrorState({
       className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-red-600 bg-slate-50 px-3.5 py-3"
       role="alert"
     >
-      <p className="text-sm text-red-700">{message}</p>
+      <p className="text-sm text-red-300">{message}</p>
       {onRetry && (
         <button type="button" onClick={onRetry} className="vin-btn-primary px-3 py-1 text-xs">
           Retry
@@ -145,7 +145,7 @@ export function SeverityBarCounts({ bySeverity }: { bySeverity: Record<string, n
     return <p className="text-xs text-slate-500">No findings recorded.</p>
   return (
     <div
-      className="flex h-2 w-full overflow-hidden bg-slate-900/10"
+      className="flex h-2 w-full overflow-hidden bg-white/10"
       role="img"
       aria-label="findings by severity"
     >

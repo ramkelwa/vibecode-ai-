@@ -269,7 +269,7 @@ export default function App() {
                     />
                     API {health.status}
                   </span>
-                  <span className={`vin-status-chip ${dbUp ? '' : '!text-red-700'}`}>
+                  <span className={`vin-status-chip ${dbUp ? '' : '!text-red-300'}`}>
                     <span
                       className={`inline-block h-1.5 w-1.5 rounded-full ${dbUp ? 'bg-emerald-600' : 'bg-red-600'}`}
                       role="status"
@@ -279,7 +279,7 @@ export default function App() {
                   </span>
                 </>
               ) : (
-                <span className="vin-status-chip !text-red-700">
+                <span className="vin-status-chip !text-red-300">
                   {healthError ? `API unreachable: ${healthError}` : 'Checking API…'}
                 </span>
               )}
@@ -288,7 +288,7 @@ export default function App() {
 
           <h1 className="vin-title max-w-[22ch]">{VIEW_TITLES[view]}</h1>
 
-          <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b border-slate-900/10 pb-5">
+          <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b border-white/10 pb-5">
             <p className="max-w-md text-sm leading-relaxed text-slate-500">
               Passive web security assessment — real backend data only.
             </p>

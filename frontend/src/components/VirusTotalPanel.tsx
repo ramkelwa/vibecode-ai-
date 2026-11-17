@@ -289,7 +289,7 @@ export default function VirusTotalPanel({
               type="button"
               data-testid="vt-consent-confirm"
               onClick={() => void submitNewScan()}
-              className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-amber-700"
+              className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-slate-950 transition-colors hover:bg-amber-700"
             >
               I understand, submit
             </button>

@@ -59,7 +59,7 @@ export default function Sidebar({
   return (
     <nav
       aria-label="Dashboard navigation"
-      className="sticky top-0 z-40 border-b border-slate-900/10 bg-white/85 backdrop-blur-md"
+      className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-md"
     >
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-5 py-3 md:px-10">
         <div className="flex items-baseline gap-3">
@@ -104,7 +104,7 @@ export default function Sidebar({
       </div>
 
       {opened && (
-        <div className="border-t border-slate-900/10 px-5 pb-5 pt-1 md:hidden">
+        <div className="border-t border-white/10 px-5 pb-5 pt-1 md:hidden">
           {ITEMS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
