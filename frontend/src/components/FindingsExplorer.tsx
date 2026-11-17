@@ -162,13 +162,13 @@ export default function FindingsExplorer({
           <EmptyState message="No findings match the current filters." hint="Adjust search or filters." />
         ) : (
           <>
-            <ul className="divide-y divide-slate-900/5 rounded-xl border border-slate-900/5 bg-slate-900/5 px-2 shadow-[inset_0_2px_8px_rgba(11,31,29,0.08)]" data-testid="explorer-list">
+            <ul className="divide-y divide-slate-900/5 rounded-none border border-slate-900/5 bg-slate-900/5 px-2" data-testid="explorer-list">
               {pageItems.map((f) => (
                 <li key={f.id}>
                   <button
                     type="button"
                     onClick={() => setSelected(f)}
-                    className="flex w-full items-center gap-2 rounded-lg px-1 py-2.5 text-left text-sm transition-colors hover:text-cyan-700"
+                    className="flex w-full items-center gap-2 rounded-sm px-1 py-2.5 text-left text-sm transition-colors hover:text-cyan-700"
                     aria-label={`finding ${f.title}`}
                   >
                     <SeverityBadge severity={f.severity} />
@@ -276,7 +276,7 @@ export function FindingDetail({ finding, onClose }: { finding: Finding; onClose:
         <Row
           label="Evidence (redacted by the source module)"
           value={
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-slate-900/5 bg-slate-950 p-2.5 text-[11px] text-slate-400 shadow-[inset_0_2px_8px_rgba(11,31,29,0.09)]">
+            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-sm border border-slate-900/5 bg-slate-950 p-2.5 text-[11px] text-slate-400">
               {JSON.stringify(finding.evidence ?? {}, null, 2)}
             </pre>
           }

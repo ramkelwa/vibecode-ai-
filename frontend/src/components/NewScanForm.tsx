@@ -127,7 +127,11 @@ export default function NewScanForm({
 
   return (
     <Panel title="Start a new scan" testId="new-scan-panel">
-      <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="scan type">
+      <div
+        className="mb-5 flex flex-wrap items-baseline gap-x-2 border-b border-slate-900/10"
+        role="tablist"
+        aria-label="scan type"
+      >
         {(['website', 'file', 'project'] as const).map((scanKind) => (
           <button
             key={scanKind}
@@ -136,11 +140,7 @@ export default function NewScanForm({
             aria-selected={kind === scanKind}
             disabled={sharePromptOpen || pending}
             onClick={() => setKind(scanKind)}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
-              kind === scanKind
-                ? 'border-cyan-300/40 bg-gradient-to-b from-cyan-400/25 to-cyan-500/5 text-cyan-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_0_20px_-8px_rgba(45,106,86,0.9)]'
-                : 'border-slate-900/5 bg-slate-900/[0.02] text-slate-400 hover:border-slate-900/10 hover:text-slate-200'
-            }`}
+            className="vin-tab"
           >
             {scanKind === 'website'
               ? 'Website URL'
@@ -211,7 +211,7 @@ export default function NewScanForm({
               type="file"
               disabled={sharePromptOpen || pending || !virustotalConfigured}
               onChange={(event) => setSelectedFile(event.currentTarget.files?.[0] ?? null)}
-              className="block w-full rounded-xl text-sm text-slate-300 file:mr-3 file:rounded-lg file:border file:border-slate-900/10 file:bg-gradient-to-b file:from-slate-700 file:to-slate-800 file:px-3 file:py-2 file:text-xs file:text-slate-200 file:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] hover:file:brightness-110 disabled:opacity-50"
+              className="vin-input block w-full text-sm file:mr-3 file:rounded-full file:border file:border-slate-900/20 file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:text-slate-300 hover:file:border-slate-900/40 disabled:opacity-50"
             />
             {selectedFile && (
               <p className="break-all text-xs text-slate-400">
@@ -297,7 +297,7 @@ export default function NewScanForm({
           role="dialog"
           aria-modal="true"
           aria-label="Confirm combined VirusTotal scan"
-          className="mt-4 rounded-xl border border-amber-500/30 bg-[linear-gradient(160deg,rgba(255,251,235,0.95),rgba(254,243,199,0.6))] p-4 text-sm text-amber-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_-30px_rgba(251,191,36,0.9)]"
+          className="mt-4 border-l-2 border-amber-600 bg-slate-50 p-4 text-sm text-slate-300"
           data-testid="vt-url-consent"
         >
           <p className="mb-2 font-medium">Confirm the combined scan and VirusTotal sharing</p>
@@ -313,7 +313,7 @@ export default function NewScanForm({
             <button
               type="button"
               onClick={() => void createScan(true)}
-              className="rounded-lg border border-amber-400/40 bg-gradient-to-b from-amber-400 to-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_4px_0_rgba(255,251,235,0.95)]"
+              className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-amber-700"
             >
               I agree — start combined scan
             </button>
@@ -321,7 +321,7 @@ export default function NewScanForm({
               <button
                 type="button"
                 onClick={() => void createScan(false)}
-                className="rounded-lg border border-amber-400/25 px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-400/10"
+                className="rounded-full border border-amber-600/40 px-3.5 py-1.5 text-xs text-amber-800 transition-colors hover:border-amber-600"
               >
                 VibeShield only
               </button>
@@ -329,7 +329,7 @@ export default function NewScanForm({
             <button
               type="button"
               onClick={() => setSharePromptOpen(false)}
-              className="vin-btn-ghost px-3 py-1.5 text-xs"
+              className="vin-btn-ghost px-3.5 py-1.5 text-xs"
             >
               Cancel
             </button>

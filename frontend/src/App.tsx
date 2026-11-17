@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Menu } from 'lucide-react'
 import {
   api,
   type Artifacts,
@@ -24,6 +23,7 @@ import VirusTotalPanel from './components/VirusTotalPanel'
 import VirusTotalFilePanel from './components/VirusTotalFilePanel'
 import { ErrorState } from './components/ui'
 import Scene3D from './components/Scene3D'
+import Cursor from './components/Cursor'
 
 const VIEW_TITLES: Record<ViewKey, string> = {
   overview: 'Overview',
@@ -229,9 +229,19 @@ export default function App() {
     }
   }
 
+  const viewIndex = String(Object.keys(VIEW_TITLES).indexOf(view) + 1).padStart(2, '0')
+  const ticker = [
+    'Passive assessment',
+    'Real backend data',
+    'No simulated results',
+    'Rate-limited scanning',
+    'Read-only by default',
+  ]
+
   return (
-    <div className="relative flex min-h-screen flex-col md:flex-row">
+    <div className="relative min-h-screen">
       <Scene3D />
+      <Cursor />
       <Sidebar
         active={view}
         onSelect={(v) => {
@@ -239,56 +249,60 @@ export default function App() {
           setNavOpen(false)
         }}
         opened={navOpen}
+        onToggle={() => setNavOpen((v) => !v)}
       />
-      <main className="relative z-10 w-full min-w-0 flex-1 px-4 pb-10 pt-4 md:max-w-[calc(100%-16.5rem)] md:pr-6">
-        <header className="vin-panel mb-6 flex items-start justify-between gap-3 !rounded-2xl px-4 py-3.5 md:px-5">
-          <div className="flex min-w-0 items-start gap-2">
-            <button
-              type="button"
-              className="vin-btn-ghost mt-0.5 p-1.5 md:hidden"
-              aria-label="Toggle navigation"
-              aria-expanded={navOpen}
-              onClick={() => setNavOpen((v) => !v)}
+      <main className="relative z-10 mx-auto w-full max-w-[1440px] px-5 pb-24 md:px-10">
+        <header className="pb-7 pt-9 md:pt-12">
+          <div className="mb-7 flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
+            <p className="vin-kicker">{viewIndex} — Security console</p>
+            <div
+              className="flex flex-wrap items-center gap-x-6 gap-y-2 md:justify-end"
+              data-testid="backend-status"
             >
-              <Menu className="h-4 w-4" aria-hidden />
-            </button>
-            <div className="min-w-0">
-              <p className="vin-kicker mb-1 !text-[9px] text-cyan-700/70">Security console</p>
-              <h1 className="vin-title text-2xl font-semibold tracking-tight md:text-[1.75rem]">
-                {VIEW_TITLES[view]}
-              </h1>
-              <p className="mt-0.5 truncate text-xs text-slate-500">
-                Passive web security assessment — real backend data only
-              </p>
+              {health ? (
+                <>
+                  <span className="vin-status-chip">
+                    <span
+                      className={`inline-block h-1.5 w-1.5 rounded-full ${health.status === 'ok' ? 'bg-emerald-600' : 'bg-red-600'}`}
+                      role="status"
+                      aria-label={`API ${health.status}`}
+                    />
+                    API {health.status}
+                  </span>
+                  <span className={`vin-status-chip ${dbUp ? '' : '!text-red-700'}`}>
+                    <span
+                      className={`inline-block h-1.5 w-1.5 rounded-full ${dbUp ? 'bg-emerald-600' : 'bg-red-600'}`}
+                      role="status"
+                      aria-label={dbUp ? 'database connected' : 'database unavailable'}
+                    />
+                    Database {dbUp ? 'connected' : 'unavailable'}
+                  </span>
+                </>
+              ) : (
+                <span className="vin-status-chip !text-red-700">
+                  {healthError ? `API unreachable: ${healthError}` : 'Checking API…'}
+                </span>
+              )}
             </div>
           </div>
-          <div className="shrink-0 text-right text-xs" data-testid="backend-status">
-            {health ? (
-              <div className="flex flex-col items-end gap-1.5">
-                <span className="vin-status-chip">
-                  <span
-                    className={`inline-block h-2 w-2 rounded-full ${health.status === 'ok' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(45,106,86,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
-                    role="status"
-                    aria-label={`API ${health.status}`}
-                  />
-                  API {health.status}
-                </span>
-                <span className={`vin-status-chip ${dbUp ? '' : '!text-red-700'}`}>
-                  <span
-                    className={`inline-block h-2 w-2 rounded-full ${dbUp ? 'bg-emerald-400 shadow-[0_0_8px_rgba(45,106,86,0.9)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]'}`}
-                    role="status"
-                    aria-label={dbUp ? 'database connected' : 'database unavailable'}
-                  />
-                  Database {dbUp ? 'connected' : 'unavailable'}
-                </span>
-              </div>
-            ) : (
-              <span className="vin-status-chip !text-red-700">
-                {healthError ? `API unreachable: ${healthError}` : 'Checking API…'}
-              </span>
-            )}
+
+          <h1 className="vin-title max-w-[22ch]">{VIEW_TITLES[view]}</h1>
+
+          <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b border-slate-900/10 pb-5">
+            <p className="max-w-md text-sm leading-relaxed text-slate-500">
+              Passive web security assessment — real backend data only.
+            </p>
+            <p className="vin-kicker">VibeShield / AI Security</p>
           </div>
         </header>
+
+        <div className="vin-marquee mb-9" aria-hidden="true">
+          <div className="vin-marquee-track">
+            {[...ticker, ...ticker].map((item, index) => (
+              <span key={`${item}-${index}`}>{item}</span>
+            ))}
+          </div>
+        </div>
 
         {health && !dbUp && (
           <div className="mb-4" data-testid="db-down-note">

@@ -23,26 +23,28 @@ export default function ScanHistory({
       ) : scans.length === 0 ? (
         <EmptyState message="No scans recorded yet." hint="Start a scan from the New scan view." />
       ) : (
-        <ul className="divide-y divide-slate-900/5 rounded-xl border border-slate-900/5 bg-slate-900/5 px-2 shadow-[inset_0_2px_8px_rgba(11,31,29,0.08)]">
+        <ul>
           {scans.map((s) => (
             <li key={s.id}>
               <button
                 type="button"
                 onClick={() => onOpen(s.id)}
-                className="vin-row-hover w-full rounded-lg px-2 py-2.5 text-left transition-colors hover:text-cyan-700"
+                className="vin-row flex-col items-start gap-1.5 text-sm text-slate-300"
               >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="flex min-w-0 items-center gap-2 text-sm">
+                <span className="flex w-full items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-3">
                     <StatusDot status={s.status} />
-                    <span className="truncate">{s.target_url}</span>
-                    <span className="font-mono text-xs text-slate-500">{s.id.slice(0, 8)}</span>
+                    <span className="vin-row-target truncate text-slate-200">{s.target_url}</span>
+                    <span className="shrink-0 font-mono text-[11px] text-slate-500">
+                      {s.id.slice(0, 8)}
+                    </span>
                   </span>
-                  <span className="shrink-0 text-xs text-slate-500">
+                  <span className="vin-kicker shrink-0 pr-5">
                     {s.status}
                     {s.finished_at ? ` · ${new Date(s.finished_at).toLocaleString()}` : ''}
                   </span>
                 </span>
-                <span className="mt-1 block truncate pl-4 text-xs text-slate-600">
+                <span className="block truncate pl-[18px] text-xs text-slate-600">
                   {s.modules_requested.join(', ') || 'no modules requested'}
                 </span>
               </button>

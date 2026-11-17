@@ -104,7 +104,7 @@ function Kpi({ label, value }: { label: string; value: number }) {
   return (
     <div className="vin-tile p-3">
       <dt className="vin-kicker !text-[9px]">{label}</dt>
-      <dd className="mt-1.5 font-mono text-xl font-semibold tabular-nums text-cyan-700 drop-shadow-[0_0_10px_rgba(45,106,86,0.35)]">{value}</dd>
+      <dd className="vin-figure mt-2">{value}</dd>
     </div>
   )
 }

@@ -2,6 +2,7 @@ import {
   ClipboardList,
   FileBarChart,
   LayoutDashboard,
+  Menu,
   Package,
   PlusCircle,
   Search,
@@ -18,75 +19,113 @@ export type ViewKey =
   | 'virustotal'
   | 'reports'
 
-const ITEMS: Array<{ key: ViewKey; label: string; icon: typeof Shield }> = [
-  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'new-scan', label: 'New scan', icon: PlusCircle },
-  { key: 'history', label: 'Scan history', icon: ClipboardList },
-  { key: 'explorer', label: 'Findings explorer', icon: Search },
-  { key: 'inventory', label: 'Endpoint & script inventory', icon: Package },
-  { key: 'config', label: 'Configuration & dependencies', icon: Package },
-  { key: 'virustotal', label: 'VirusTotal', icon: Shield },
-  { key: 'reports', label: 'Report', icon: FileBarChart },
+const ITEMS: Array<{ key: ViewKey; label: string; short: string; icon: typeof Shield }> = [
+  { key: 'overview', label: 'Overview', short: 'Overview', icon: LayoutDashboard },
+  { key: 'new-scan', label: 'New scan', short: 'New scan', icon: PlusCircle },
+  { key: 'history', label: 'Scan history', short: 'History', icon: ClipboardList },
+  { key: 'explorer', label: 'Findings explorer', short: 'Findings', icon: Search },
+  {
+    key: 'inventory',
+    label: 'Endpoint & script inventory',
+    short: 'Inventory',
+    icon: Package,
+  },
+  {
+    key: 'config',
+    label: 'Configuration & dependencies',
+    short: 'Config',
+    icon: Package,
+  },
+  { key: 'virustotal', label: 'VirusTotal', short: 'VirusTotal', icon: Shield },
+  { key: 'reports', label: 'Report', short: 'Report', icon: FileBarChart },
 ]
 
+/**
+ * Top navigation, editorial style: wordmark at the left, an inline index of the
+ * views at the right, and a single ink action. Same destinations and the same
+ * accessible names as the previous side rail — only the placement changed.
+ */
 export default function Sidebar({
   active,
   onSelect,
   opened,
+  onToggle,
 }: {
   active: ViewKey
   onSelect: (key: ViewKey) => void
   opened?: boolean
+  onToggle?: () => void
 }) {
   return (
     <nav
       aria-label="Dashboard navigation"
-      className={`relative z-20 m-3 w-60 shrink-0 flex-col gap-1 self-start rounded-2xl border border-slate-900/10 bg-[linear-gradient(165deg,rgba(255,255,255,0.96),rgba(240,252,236,0.97))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_18px_40px_-30px_rgba(11,31,29,0.35)] backdrop-blur-xl md:sticky md:top-3 md:flex ${
-        opened ? 'flex' : 'hidden md:flex'
-      }`}
+      className="sticky top-0 z-40 border-b border-slate-900/10 bg-white/85 backdrop-blur-md"
     >
-      <div className="mb-5 flex items-center gap-2.5 px-1.5 pt-1">
-        {/* Layered shield mark with a floating glass plate. */}
-        <span className="relative grid h-10 w-10 place-items-center rounded-xl border border-sky-300/25 bg-[linear-gradient(160deg,rgba(45,106,86,0.22),rgba(106,159,140,0.18))] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_6px_0_-1px_rgba(11,31,29,0.9),0_14px_24px_-12px_rgba(45,106,86,0.8)]">
-          <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/60 to-transparent opacity-60" />
-          <Shield className="relative h-5 w-5 text-cyan-700 drop-shadow-[0_0_8px_rgba(45,106,86,0.8)]" aria-hidden />
-        </span>
-        <span className="leading-tight">
-          <span className="block text-sm font-semibold tracking-tight text-slate-100">
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-5 py-3 md:px-10">
+        <div className="flex items-baseline gap-3">
+          <Shield className="h-[17px] w-[17px] translate-y-[2px] text-slate-100" aria-hidden />
+          <span className="text-[15px] font-semibold tracking-[-0.02em] text-slate-100">
             VibeShield
           </span>
-          <span className="vin-kicker block !text-[9px] !tracking-[0.24em] text-cyan-700/60">
-            AI Security
-          </span>
-        </span>
-      </div>
+          <span className="vin-kicker hidden sm:inline">AI Security</span>
+        </div>
 
-      <p className="vin-kicker mb-2 px-2.5">Workspace</p>
+        <div className="hidden items-center gap-6 md:flex">
+          {ITEMS.map(({ key, label, short }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelect(key)}
+              aria-current={active === key ? 'page' : undefined}
+              title={label}
+              className="vin-nav-link"
+            >
+              {short}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => onSelect('new-scan')}
+            className="vin-btn-primary px-4 py-1.5 text-xs"
+          >
+            Start scan
+          </button>
+        </div>
 
-      {ITEMS.map(({ key, label, icon: Icon }) => (
         <button
-          key={key}
           type="button"
-          onClick={() => onSelect(key)}
-          aria-current={active === key ? 'page' : undefined}
-          className="vin-nav-item"
+          onClick={onToggle}
+          aria-label="Toggle navigation"
+          aria-expanded={opened}
+          className="vin-btn-ghost p-2 md:hidden"
         >
-          <Icon
-            className={`h-4 w-4 shrink-0 ${
-              active === key ? 'text-cyan-700 drop-shadow-[0_0_6px_rgba(45,106,86,0.7)]' : 'opacity-70'
-            }`}
-            aria-hidden
-          />
-          <span className="truncate">{label}</span>
+          <Menu className="h-4 w-4" aria-hidden />
         </button>
-      ))}
-
-      <div className="mt-5 rounded-xl border border-slate-900/5 bg-slate-900/5 p-3">
-        <p className="vin-kicker mb-1 !text-[9px]">Passive mode</p>
-        <p className="text-[11px] leading-relaxed text-slate-500">
-          Read-only assessment. No active exploitation, no simulated results.
-        </p>
       </div>
+
+      {opened && (
+        <div className="border-t border-slate-900/10 px-5 pb-5 pt-1 md:hidden">
+          {ITEMS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelect(key)}
+              aria-current={active === key ? 'page' : undefined}
+              className="vin-nav-mobile"
+            >
+              <span className="flex items-center gap-2.5">
+                <Icon className="h-3.5 w-3.5 opacity-60" aria-hidden />
+                {label}
+              </span>
+              <span className="vin-kicker">{key === active ? '●' : '○'}</span>
+            </button>
+          ))}
+          <p className="vin-kicker mt-5">Passive mode</p>
+          <p className="vin-prose mt-1 max-w-xs">
+            Read-only assessment. No active exploitation, no simulated results.
+          </p>
+        </div>
+      )}
     </nav>
   )
 }

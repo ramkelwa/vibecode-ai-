@@ -191,7 +191,7 @@ export default function ScanDetail({
             Module stages ({stages.filter((s) => s.status === 'completed').length}/{stages.length}{' '}
             completed)
           </div>
-          <ul className="space-y-1.5 rounded-xl border border-slate-900/5 bg-slate-900/5 p-3 shadow-[inset_0_2px_8px_rgba(11,31,29,0.08)]">
+          <ul className="space-y-1.5 rounded-none border border-slate-900/5 bg-slate-900/5 p-3">
             {stages.map((s: ScanStage) => (
               <li key={s.module} className="flex items-center gap-2 text-sm">
                 <StatusDot status={s.status} />
@@ -222,7 +222,7 @@ export default function ScanDetail({
       <Panel title={`Findings stored for this scan (${findings.length})`}>
         {aiStatus && !aiEnabled && (
           <p
-            className="mb-3 rounded-lg border border-slate-900/10 bg-slate-900/[0.03] px-2.5 py-1.5 text-xs text-slate-400"
+            className="mb-3 rounded-sm border border-slate-900/10 bg-slate-900/[0.03] px-2.5 py-1.5 text-xs text-slate-400"
             role="note"
             data-testid="ai-provider-note"
           >
@@ -279,7 +279,7 @@ export default function ScanDetail({
                      note rather than as an AI-generated interpretation. */}
                   {explanation && (
                     <div
-                      className="mt-1.5 rounded-lg border border-violet-400/25 bg-[linear-gradient(160deg,rgba(45,106,86,0.07),rgba(255,255,255,0.6))] p-2.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_24px_-18px_rgba(106,159,140,0.9)]"
+                      className="mt-1.5 border-l-2 border-violet-500/60 bg-slate-50 p-2.5 text-xs"
                       data-testid={`ai-explanation-${f.id}`}
                       role={explanation.text ? 'note' : 'alert'}
                     >

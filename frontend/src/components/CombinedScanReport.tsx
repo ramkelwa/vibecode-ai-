@@ -310,9 +310,9 @@ export default function CombinedScanReport({
             }
           />
         ) : result?.engine_results?.length ? (
-          <div className="max-h-96 overflow-auto rounded-xl border border-slate-900/10 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="max-h-96 overflow-auto rounded-none border border-slate-900/10 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-[#EAFFE8] text-slate-400">
+              <thead className="sticky top-0 bg-white text-slate-400">
                 <tr>
                   <th className="p-2">Engine</th>
                   <th className="p-2">Verdict</th>

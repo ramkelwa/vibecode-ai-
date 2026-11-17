@@ -18,7 +18,7 @@ export default function ConfigFindings({
         {configFindings.length === 0 ? (
           <EmptyState message="No configuration findings recorded for this scan." />
         ) : (
-          <ul className="divide-y divide-slate-900/5 rounded-xl border border-slate-900/5 bg-slate-900/5 px-2 shadow-[inset_0_2px_8px_rgba(11,31,29,0.08)] text-sm">
+          <ul className="divide-y divide-slate-900/5 rounded-none border border-slate-900/5 bg-slate-900/5 px-2 text-sm">
             {configFindings.map((f) => (
               <li key={f.id} className="flex items-center gap-2 py-1.5">
                 <SeverityBadge severity={f.severity} />

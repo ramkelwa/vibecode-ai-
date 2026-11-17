@@ -100,7 +100,7 @@ export default function InventoryPanel({
 
 function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-900/5 bg-slate-900/5 p-2 shadow-[inset_0_2px_8px_rgba(11,31,29,0.08)]">
+    <div className="overflow-x-auto rounded-none border border-slate-900/5 bg-slate-900/5 p-2">
       <table className="w-full text-left text-xs">
         <thead>
           <tr className="border-b border-slate-900/10 text-slate-500">
