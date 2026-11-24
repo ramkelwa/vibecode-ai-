@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download } from 'lucide-react'
+import { Download, ExternalLink, Shield, ShieldAlert } from 'lucide-react'
 import { api, ApiError, type ScanDetail as ScanDetailData, type VirustotalResult } from '../api'
 import type { ScanSubmission } from './NewScanForm'
 import { LoadingState, Panel } from './ui'
@@ -183,10 +183,10 @@ export default function CombinedScanReport({
   }
 
   return (
-    <div className="space-y-4" data-testid="combined-scan-report">
+    <div className="space-y-6" data-testid="combined-scan-report">
       <Panel title="Combined scan report" testId="combined-report-summary">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <p className="max-w-3xl text-xs text-slate-400">
+          <p className="max-w-3xl text-xs text-zinc-400 leading-relaxed">
             VibeShield and VirusTotal results are shown together for this target, with their sources
             identified separately. VirusTotal findings are third-party intelligence and do not
             change VibeShield&apos;s scan findings or risk score.
@@ -194,53 +194,63 @@ export default function CombinedScanReport({
           <button
             type="button"
             onClick={downloadCombinedReport}
-            className="vin-btn-ghost px-2.5 py-1.5 text-xs"
+            className="vin-btn-ghost px-3 py-1.5 text-xs font-medium"
           >
             <Download className="h-3.5 w-3.5" aria-hidden />
             Download combined JSON
           </button>
         </div>
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <div className="vin-panel-soft p-3">
-            <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-700">
-              VibeShield
-            </h3>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {/* VibeShield Card */}
+          <div className="vin-panel-soft p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="h-4 w-4 text-sky-400" aria-hidden />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-sky-400">
+                VibeShield
+              </h3>
+            </div>
             {submission.kind === 'file' ? (
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400 leading-relaxed">
                 VibeShield&apos;s scanner does not currently inspect APK/binary files. This target
                 has VirusTotal results only.
               </p>
             ) : detail ? (
-              <>
-                <p className="text-sm text-slate-300">
-                  {detail.scan.status} · {detail.findings.length} findings
+              <div className="space-y-1.5">
+                <p className="text-sm font-semibold text-zinc-200 capitalize">
+                  {detail.scan.status} &middot; {detail.findings.length} findings
                 </p>
-                <p className="mt-1 break-all font-mono text-[11px] text-slate-500">
+                <p className="break-all font-mono text-xs text-zinc-400">
                   Target: {submission.targetUrl}
                 </p>
                 <button
                   type="button"
                   onClick={onFocusFindings}
-                  className="mt-2 text-xs text-cyan-700 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-700"
+                  className="mt-2 text-xs text-sky-400 hover:text-sky-300 font-medium hover:underline inline-block"
                 >
-                  Open VibeShield findings and report
+                  Open VibeShield findings and report &rarr;
                 </button>
-              </>
+              </div>
             ) : (
               <LoadingState label="VibeShield scan started; loading its results…" />
             )}
           </div>
-          <div className="vin-panel-soft p-3">
-            <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-300">
-              VirusTotal Threat Intelligence
-            </h3>
-            <p className="text-xs text-slate-400">
+
+          {/* VirusTotal Card */}
+          <div className="vin-panel-soft p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldAlert className="h-4 w-4 text-violet-400" aria-hidden />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-violet-300">
+                VirusTotal Threat Intelligence
+              </h3>
+            </div>
+            <p className="text-xs text-zinc-400 leading-relaxed">
               {submission.kind === 'website'
                 ? 'Public URL report checked; a new analysis is automatically requested if no report exists.'
                 : 'File hash checked first; if no report exists, the consented file is uploaded for analysis.'}
             </p>
             {configured ? (
-              <p className="mt-2 text-xs text-slate-300" data-testid="combined-vt-status">
+              <p className="mt-2.5 text-xs font-medium text-zinc-300" data-testid="combined-vt-status">
                 {virusTotal.status === 'checking'
                   ? submission.kind === 'website'
                     ? 'Checking the existing VirusTotal URL report…'
@@ -256,7 +266,7 @@ export default function CombinedScanReport({
                           : 'VirusTotal report is ready.'}
               </p>
             ) : (
-              <p className="mt-2 text-xs text-amber-300">
+              <p className="mt-2.5 text-xs text-amber-300">
                 VirusTotal is not configured on this backend. VibeShield results are unaffected.
               </p>
             )}
@@ -278,7 +288,7 @@ export default function CombinedScanReport({
       <Panel title="VirusTotal detailed findings" testId="combined-vt-details">
         {result?.stats ? (
           <>
-            <dl className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+            <dl className="mb-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-5">
               {[
                 ['Malicious', result.stats.malicious],
                 ['Suspicious', result.stats.suspicious],
@@ -286,78 +296,92 @@ export default function CombinedScanReport({
                 ['Undetected', result.stats.undetected],
                 ['Engines reporting', result.engines_reporting],
               ].map(([label, count]) => (
-                <div key={String(label)} className="vin-tile p-2">
-                  <dt className="text-slate-500">{label}</dt>
-                  <dd className="mt-1 font-medium text-slate-200">{count ?? 'Unknown'}</dd>
+                <div key={String(label)} className="vin-tile p-2.5 flex justify-between gap-2">
+                  <dt className="text-zinc-400">{label}</dt>
+                  <dd className="font-semibold text-zinc-200 font-mono">{count ?? 'Unknown'}</dd>
                 </div>
               ))}
             </dl>
             {result.last_analysis_date && (
-              <p className="mb-2 text-xs text-slate-500">
+              <p className="mb-3 text-xs text-zinc-500">
                 Last analysis: {new Date(result.last_analysis_date).toLocaleString()}
               </p>
             )}
           </>
         ) : null}
+
         {virusTotal.status === 'checking' || virusTotal.status === 'submitting' || virusTotal.status === 'pending' ? (
-          <LoadingState
-            label={
-              virusTotal.status === 'checking'
-                ? 'Retrieving VirusTotal engine details…'
-                : virusTotal.status === 'submitting'
-                  ? 'Submitting the consented target to VirusTotal…'
-                  : 'Waiting for VirusTotal engines…'
-            }
-          />
+          <div className="py-2">
+            <LoadingState
+              label={
+                virusTotal.status === 'checking'
+                  ? 'Retrieving VirusTotal engine details…'
+                  : virusTotal.status === 'submitting'
+                    ? 'Submitting the consented target to VirusTotal…'
+                    : 'Waiting for VirusTotal engines…'
+              }
+            />
+          </div>
         ) : result?.engine_results?.length ? (
-          <div className="max-h-96 overflow-auto rounded-none border border-white/10 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="max-h-96 overflow-auto rounded-lg border border-zinc-800/60 bg-zinc-900/30">
             <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-slate-950 text-slate-400">
+              <thead className="sticky top-0 bg-zinc-900 text-zinc-400 border-b border-zinc-800 font-semibold uppercase tracking-wider">
                 <tr>
-                  <th className="p-2">Engine</th>
-                  <th className="p-2">Verdict</th>
-                  <th className="p-2">Detection / result</th>
-                  <th className="p-2">Method</th>
-                  <th className="p-2">Updated</th>
+                  <th className="py-2.5 px-3">Engine</th>
+                  <th className="py-2.5 px-3">Verdict</th>
+                  <th className="py-2.5 px-3">Detection / result</th>
+                  <th className="py-2.5 px-3">Method</th>
+                  <th className="py-2.5 px-3">Updated</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-zinc-800/40">
                 {result.engine_results.map((engine) => (
-                  <tr key={engine.engine} className="border-t border-white/5">
-                    <td className="p-2 font-medium text-slate-200">{engine.engine}</td>
-                    <td className="p-2 text-slate-300">
-                      {categoryLabel[engine.category] ?? engine.category}
+                  <tr key={engine.engine} className="transition-colors hover:bg-zinc-800/40">
+                    <td className="py-2 px-3 font-semibold text-zinc-200">{engine.engine}</td>
+                    <td className="py-2 px-3 text-zinc-300">
+                      <span
+                        className={`inline-block rounded px-2 py-0.5 text-[10px] uppercase font-semibold font-mono ${
+                          engine.category === 'malicious'
+                            ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            : engine.category === 'suspicious'
+                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              : 'bg-zinc-800 text-zinc-400'
+                        }`}
+                      >
+                        {categoryLabel[engine.category] ?? engine.category}
+                      </span>
                     </td>
-                    <td className="p-2 text-slate-300">{engine.result ?? '—'}</td>
-                    <td className="p-2 text-slate-400">{engine.method ?? '—'}</td>
-                    <td className="p-2 text-slate-400">{engine.engine_update ?? '—'}</td>
+                    <td className="py-2 px-3 font-mono text-zinc-300">{engine.result ?? '—'}</td>
+                    <td className="py-2 px-3 text-zinc-500 font-mono text-[11px]">{engine.method ?? '—'}</td>
+                    <td className="py-2 px-3 text-zinc-500 font-mono text-[11px]">{engine.engine_update ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : virusTotal.status === 'done' ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-zinc-400 py-2">
             {result?.status === 'not_found'
               ? 'No report or engine findings are available yet.'
               : 'No per-engine details were returned by VirusTotal for this response.'}
           </p>
         ) : configured ? (
-          <p className="text-sm text-slate-400">Waiting for VirusTotal results.</p>
+          <p className="text-sm text-zinc-400 py-2">Waiting for VirusTotal results.</p>
         ) : (
-          <p className="text-sm text-slate-400">Configure VirusTotal to include its report.</p>
+          <p className="text-sm text-zinc-400 py-2">Configure VirusTotal to include its report.</p>
         )}
+
         {result?.report_url && (
           <a
             href={result.report_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1 text-xs text-cyan-700 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-700"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 font-medium hover:underline"
           >
-            Open full VirusTotal report
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden /> Open full VirusTotal report
           </a>
         )}
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-zinc-500">
           VirusTotal results are not VibeShield findings. Detections are engine opinions; absence
           of detections does not establish that a target is safe.
         </p>

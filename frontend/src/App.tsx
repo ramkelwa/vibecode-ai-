@@ -111,7 +111,7 @@ export default function App() {
             refreshScans()
           }
         })
-        .catch(() => undefined) // transient API errors keep the last shown state
+        .catch(() => undefined)
     }
     poll()
     pollRef.current = setInterval(poll, 1500)
@@ -176,20 +176,20 @@ export default function App() {
 
   // Severity distribution comes from the newest completed scan's real data.
   const [severityCounts, setSeverityCounts] = useState<Record<string, number>>({})
-  const newestCompleted = useMemo(
-    () => scans.find((s) => s.status === 'completed') ?? null,
+  const newestCompletedId = useMemo(
+    () => scans.find((s) => s.status === 'completed')?.id ?? null,
     [scans],
   )
   useEffect(() => {
     let cancelled = false
-    if (!newestCompleted) {
+    if (!newestCompletedId) {
       setSeverityCounts({})
       return () => {
         cancelled = true
       }
     }
     api
-      .getScan(newestCompleted.id)
+      .getScan(newestCompletedId)
       .then((d) => {
         if (cancelled) return
         const by: Record<string, number> = {}
@@ -202,7 +202,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [newestCompleted])
+  }, [newestCompletedId])
 
   const metrics: OverviewMetrics | null = useMemo(() => {
     if (scans.length === 0 && scansError) return null
@@ -240,7 +240,7 @@ export default function App() {
   ]
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-[#09090b] text-zinc-200">
       <Scene3D />
       <Cursor />
       <Sidebar
@@ -252,27 +252,27 @@ export default function App() {
         opened={navOpen}
         onToggle={() => setNavOpen((v) => !v)}
       />
-      <main className="relative z-10 mx-auto w-full max-w-[1440px] px-5 pb-24 md:px-10">
-        <header className="pb-7 pt-9 md:pt-12">
-          <div className="mb-7 flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
-            <p className="vin-kicker">{viewIndex} — Security console</p>
+      <main className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-24 sm:px-6 md:px-10">
+        <header className="pb-6 pt-8 md:pt-10">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+            <p className="vin-kicker font-mono text-xs">{viewIndex} — Security console</p>
             <div
-              className="flex flex-wrap items-center gap-x-6 gap-y-2 md:justify-end"
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 md:justify-end"
               data-testid="backend-status"
             >
               {health ? (
                 <>
                   <span className="vin-status-chip">
                     <span
-                      className={`inline-block h-1.5 w-1.5 rounded-full ${health.status === 'ok' ? 'bg-emerald-600' : 'bg-red-600'}`}
+                      className={`inline-block h-2 w-2 rounded-full ${health.status === 'ok' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-red-500'}`}
                       role="status"
                       aria-label={`API ${health.status}`}
                     />
                     API {health.status}
                   </span>
-                  <span className={`vin-status-chip ${dbUp ? '' : '!text-red-300'}`}>
+                  <span className={`vin-status-chip ${dbUp ? '' : '!text-red-300 !border-red-500/40'}`}>
                     <span
-                      className={`inline-block h-1.5 w-1.5 rounded-full ${dbUp ? 'bg-emerald-600' : 'bg-red-600'}`}
+                      className={`inline-block h-2 w-2 rounded-full ${dbUp ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-red-500'}`}
                       role="status"
                       aria-label={dbUp ? 'database connected' : 'database unavailable'}
                     />
@@ -280,24 +280,24 @@ export default function App() {
                   </span>
                 </>
               ) : (
-                <span className="vin-status-chip !text-red-300">
+                <span className="vin-status-chip !text-red-300 !border-red-500/40">
                   {healthError ? `API unreachable: ${healthError}` : 'Checking API…'}
                 </span>
               )}
             </div>
           </div>
 
-          <h1 className="vin-title max-w-[22ch]">{VIEW_TITLES[view]}</h1>
+          <h1 className="vin-title">{VIEW_TITLES[view]}</h1>
 
-          <div className="mt-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b border-white/10 pb-5">
-            <p className="max-w-md text-sm leading-relaxed text-slate-500">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-zinc-800/80 pb-4">
+            <p className="text-sm text-zinc-400">
               Passive web security assessment — real backend data only.
             </p>
-            <p className="vin-kicker">VibeShield / AI Security</p>
+            <p className="vin-kicker text-zinc-400">VibeShield / AI Security</p>
           </div>
         </header>
 
-        <div className="vin-marquee mb-9" aria-hidden="true">
+        <div className="vin-marquee mb-8" aria-hidden="true">
           <div className="vin-marquee-track">
             {[...ticker, ...ticker].map((item, index) => (
               <span key={`${item}-${index}`}>{item}</span>
@@ -306,7 +306,7 @@ export default function App() {
         </div>
 
         {health && !dbUp && (
-          <div className="mb-4" data-testid="db-down-note">
+          <div className="mb-6" data-testid="db-down-note">
             <ErrorState message="Database unavailable — scan persistence is disabled. Data below reflects last successful API reads; nothing is simulated." />
           </div>
         )}
@@ -324,7 +324,7 @@ export default function App() {
         )}
 
         {view === 'new-scan' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <NewScanForm
               allowedToScan={dbUp}
               virustotalConfigured={health?.features.virustotal ?? false}
@@ -368,7 +368,7 @@ export default function App() {
         )}
 
         {view === 'history' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <ScanHistory
               scans={scans}
               loading={scansLoading}
@@ -385,7 +385,7 @@ export default function App() {
         )}
 
         {view === 'explorer' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <ScanDetail
               detail={detail}
               onScanUpdated={refreshScans}
@@ -406,7 +406,7 @@ export default function App() {
         )}
 
         {view === 'inventory' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <ScanDetail
               detail={detail}
               onScanUpdated={refreshScans}
@@ -425,7 +425,7 @@ export default function App() {
         {view === 'config' && <ConfigFindings artifacts={artifacts} findings={findings} />}
 
         {view === 'virustotal' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <VirusTotalPanel configured={health?.features.virustotal ?? null} />
             <VirusTotalFilePanel configured={health?.features.virustotal ?? null} />
           </div>

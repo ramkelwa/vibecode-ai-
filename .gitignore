@@ -29,5 +29,6 @@ __pycache__/
 *.db-shm
 *.db-wal
 *.log
+frontend/tmp/
 backend/demo_data/backend_port.txt
 backend/demo_data/scan_id.txt

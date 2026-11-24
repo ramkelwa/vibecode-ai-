@@ -3,315 +3,310 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
-   VibeShield — editorial interface layer
-   After Preymaker (DashDigital), inverted: matte black and warm white, hairline
-   rules, oversized tight type, rows that answer the cursor. One source of truth
-   for the whole look — no gradients, no glass, no drop shadows.
+   VibeShield AI — Enterprise Security Design System
+   Modern dark theme inspired by shadcn/ui & Radix UI:
+   Deep obsidian background (#09090b), elevated translucent cards, refined
+   hairline borders, crisp high-contrast typography, and accessible status tokens.
 --------------------------------------------------------------------------- */
 
 @layer base {
   :root {
     color-scheme: dark;
-    --vin-ink: #f6f5f0;
-    --vin-paper: #0f0f0e;
-    --vin-bone: #1a1a18;
-    --vin-bone-deep: #232320;
-    --vin-hair: rgb(246 245 240 / 0.16);
-    --vin-hair-soft: rgb(246 245 240 / 0.09);
-    --vin-muted: #a5a49c;
-    --vin-faint: #7a7973;
+    --vin-paper: #09090b;
+    --vin-ink: #fafafa;
+    --vin-bone: #141417;
+    --vin-bone-deep: #18181b;
+    --vin-hair: rgba(255, 255, 255, 0.08);
+    --vin-hair-soft: rgba(255, 255, 255, 0.04);
+    --vin-muted: #a1a1aa;
+    --vin-faint: #71717a;
   }
 
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    background-color: var(--vin-paper);
   }
 
   body {
-    background: var(--vin-paper);
+    background-color: var(--vin-paper);
     color: var(--vin-ink);
-    font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-    font-feature-settings: 'ss01', 'cv01', 'cv05';
+    font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    min-height: 100vh;
   }
 
   ::selection {
-    background: var(--vin-ink);
-    color: var(--vin-paper);
+    background: #38bdf8;
+    color: #09090b;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgb(246 245 240 / 0.22) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   }
+
   *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
+
   *::-webkit-scrollbar-track {
     background: transparent;
   }
+
   *::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: rgb(246 245 240 / 0.2);
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 
   :focus-visible {
-    outline: 1.5px solid var(--vin-ink);
-    outline-offset: 3px;
+    outline: 2px solid #38bdf8;
+    outline-offset: 2px;
   }
 }
 
-/* --- ambient layer -------------------------------------------------------- */
-/* The old 3D scene is now a printed grid: two faint columns of hairlines and a
-   paper grain. It stays behind everything and never intercepts the pointer. */
-
+/* --- ambient layer: lightweight GPU-accelerated cyber grid --- */
 .scene {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: var(--vin-paper);
+  background-color: var(--vin-paper);
 }
 
 .scene-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, rgb(246 245 240 / 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(246 245 240 / 0.035) 1px, transparent 1px);
-  background-size: 12.5vw 25vh;
-  mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 85%);
-  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 85%);
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(100% 70% at 50% 0%, #000 25%, transparent 80%);
+  -webkit-mask-image: radial-gradient(100% 70% at 50% 0%, #000 25%, transparent 80%);
 }
 
 .scene-noise {
   position: absolute;
   inset: 0;
-  opacity: 0.02;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.015;
+  background-image: radial-gradient(#ffffff 0.5px, transparent 0.5px);
+  background-size: 16px 16px;
 }
 
-/* --- type ----------------------------------------------------------------- */
-
+/* --- typography & design tokens --- */
 @layer components {
   .vin-title {
-    font-size: clamp(2.35rem, 5.4vw, 4.5rem);
-    line-height: 0.93;
-    letter-spacing: -0.045em;
-    font-weight: 500;
+    font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-weight: 700;
     color: var(--vin-ink);
-    text-wrap: balance;
   }
 
   .vin-kicker {
-    font-size: 0.625rem;
-    letter-spacing: 0.24em;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--vin-muted);
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .vin-section-label {
-    font-size: 0.6875rem;
-    letter-spacing: 0.18em;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--vin-ink);
   }
 
   .vin-figure {
-    font-size: clamp(2rem, 3.2vw, 2.75rem);
-    line-height: 0.9;
-    letter-spacing: -0.045em;
+    font-size: clamp(1.75rem, 2.7vw, 2.4rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--vin-ink);
   }
 
   .vin-prose {
-    font-size: 0.8125rem;
-    line-height: 1.65;
+    font-size: 0.875rem;
+    line-height: 1.6;
     color: var(--vin-muted);
   }
 
-  /* --- surfaces: rules instead of cards ---------------------------------- */
+  /* --- surfaces: modern shadcn cards --- */
 
   .vin-panel {
     position: relative;
-    border: 0;
-    border-top: 1px solid var(--vin-hair);
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    padding-top: 1.15rem;
-    animation: vin-reveal 0.62s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    border: 1px solid var(--vin-hair);
+    border-radius: 0.75rem;
+    background: rgba(18, 18, 22, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .vin-panel:hover {
+    border-color: rgba(255, 255, 255, 0.12);
   }
 
   .vin-panel-soft {
     position: relative;
     border: 1px solid var(--vin-hair);
-    border-radius: 2px;
-    background: var(--vin-bone);
-    box-shadow: none;
+    border-radius: 0.5rem;
+    background: rgba(24, 24, 28, 0.6);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
   }
 
   .vin-tile {
     position: relative;
     overflow: visible;
-    border: 0;
-    border-top: 1px solid var(--vin-hair);
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    transition: background 0.3s ease;
+    border: 1px solid var(--vin-hair);
+    border-radius: 0.5rem;
+    background: rgba(18, 18, 22, 0.4);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
+    transition: background 0.2s ease, border-color 0.2s ease;
   }
   .vin-tile:hover {
-    background: var(--vin-bone);
+    background: rgba(28, 28, 34, 0.6);
+    border-color: rgba(255, 255, 255, 0.14);
   }
 
-  /* --- buttons ----------------------------------------------------------- */
+  /* --- buttons --- */
 
   .vin-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    border-radius: 999px;
+    border-radius: 0.5rem;
     font-weight: 500;
-    letter-spacing: 0.005em;
+    letter-spacing: -0.01em;
     white-space: nowrap;
-    transition:
-      background 0.24s ease,
-      color 0.2s ease,
-      border-color 0.2s ease,
-      transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1),
-      opacity 0.2s ease;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .vin-btn:active:not(:disabled) {
-    transform: translateY(1px);
+    transform: scale(0.98);
   }
 
   .vin-btn-primary {
     @apply vin-btn;
-    border: 1px solid var(--vin-ink);
-    background: var(--vin-ink);
-    color: #0f0f0e;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: #f4f4f5;
+    color: #09090b;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
   .vin-btn-primary:hover:not(:disabled) {
-    background: transparent;
-    color: var(--vin-ink);
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
   }
   .vin-btn-primary:disabled {
-    opacity: 0.35;
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
   .vin-btn-ghost {
     @apply vin-btn;
-    border: 1px solid var(--vin-hair);
-    background: transparent;
-    color: var(--vin-ink);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(24, 24, 28, 0.55);
+    color: #e4e4e7;
   }
   .vin-btn-ghost:hover:not(:disabled) {
-    border-color: var(--vin-ink);
-    background: var(--vin-ink);
-    color: #0f0f0e;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(39, 39, 46, 0.9);
+    color: #ffffff;
   }
   .vin-btn-ghost:disabled {
-    opacity: 0.35;
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
-  /* --- fields: underline, like a form on paper --------------------------- */
+  /* --- form fields --- */
 
   .vin-input {
-    border: 0;
-    border-bottom: 1px solid var(--vin-hair);
-    border-radius: 0;
-    background: transparent;
-    padding: 0.5rem 0.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.5rem;
+    background: rgba(12, 12, 15, 0.75);
+    padding: 0.55rem 0.85rem;
     color: var(--vin-ink);
     outline: none;
-    transition:
-      border-color 0.2s ease,
-      background 0.2s ease;
+    transition: all 0.18s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
   }
   .vin-input:hover {
-    border-bottom-color: rgb(246 245 240 / 0.36);
+    border-color: rgba(255, 255, 255, 0.22);
   }
   .vin-input:focus {
-    border-bottom-color: var(--vin-ink);
-    background: var(--vin-bone);
+    border-color: #38bdf8;
+    background: rgba(18, 18, 22, 0.95);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.3);
     outline: none;
   }
   .vin-input::placeholder {
     color: var(--vin-faint);
   }
   .vin-input:disabled {
-    color: var(--vin-faint);
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
-  /* --- navigation -------------------------------------------------------- */
+  /* --- navigation --- */
 
   .vin-nav-link {
     position: relative;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.3rem 0;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.375rem;
     font-size: 0.8125rem;
-    letter-spacing: -0.01em;
+    font-weight: 500;
     color: var(--vin-muted);
-    transition: color 0.2s ease;
-  }
-  .vin-nav-link::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 1px;
-    background: var(--vin-ink);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: all 0.18s ease;
   }
   .vin-nav-link:hover {
     color: var(--vin-ink);
-  }
-  .vin-nav-link:hover::after {
-    transform: scaleX(1);
+    background: rgba(255, 255, 255, 0.05);
   }
   .vin-nav-link[aria-current='page'] {
     color: var(--vin-ink);
-  }
-  .vin-nav-link[aria-current='page']::after {
-    transform: scaleX(1);
-    height: 2px;
+    background: rgba(39, 39, 46, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 
   .vin-nav-mobile {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    border-top: 1px solid var(--vin-hair-soft);
-    padding: 0.75rem 0;
+    border-radius: 0.375rem;
+    padding: 0.75rem 0.85rem;
     text-align: left;
     font-size: 0.9375rem;
+    font-weight: 500;
     color: var(--vin-muted);
-    transition: color 0.2s ease, padding-left 0.3s ease;
+    transition: all 0.18s ease;
   }
   .vin-nav-mobile:hover {
     color: var(--vin-ink);
-    padding-left: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
   }
   .vin-nav-mobile[aria-current='page'] {
     color: var(--vin-ink);
-    font-weight: 500;
+    background: rgba(39, 39, 46, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  /* --- list rows: the signature interaction ------------------------------ */
+  /* --- list rows --- */
 
   .vin-row {
     position: relative;
@@ -320,167 +315,117 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    border-bottom: 1px solid var(--vin-hair-soft);
-    padding: 0.8rem 0.25rem 0.8rem 0;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    padding: 0.75rem 0.85rem;
     text-align: left;
-    transition:
-      background 0.28s ease,
-      padding-left 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .vin-row::after {
-    content: '↗';
-    position: absolute;
-    right: 0.4rem;
-    font-size: 0.8rem;
-    color: var(--vin-ink);
-    opacity: 0;
-    transform: translate(-4px, 4px);
-    transition: opacity 0.26s ease, transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: all 0.18s ease;
   }
   .vin-row:hover {
-    background: var(--vin-bone);
-    padding-left: 0.7rem;
-  }
-  .vin-row:hover::after {
-    opacity: 1;
-    transform: translate(0, 0);
+    background: rgba(28, 28, 34, 0.7);
+    border-color: rgba(255, 255, 255, 0.08);
   }
   .vin-row:hover .vin-row-target {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    color: #38bdf8;
   }
 
   .vin-row-hover {
-    transition: background 0.28s ease;
+    transition: background 0.18s ease;
   }
   .vin-row-hover:hover {
-    background: var(--vin-bone);
+    background: rgba(28, 28, 34, 0.6);
   }
 
-  /* --- tab strip --------------------------------------------------------- */
+  /* --- tab strip --- */
 
   .vin-tab {
-    border: 0;
-    border-bottom: 1px solid transparent;
-    border-radius: 0;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
     background: transparent;
-    padding: 0.45rem 0.1rem;
-    margin-right: 1.6rem;
+    padding: 0.4rem 0.85rem;
+    margin-right: 0.5rem;
     font-size: 0.8125rem;
+    font-weight: 500;
     color: var(--vin-muted);
-    transition: color 0.2s ease, border-color 0.2s ease;
+    transition: all 0.18s ease;
   }
   .vin-tab:hover {
     color: var(--vin-ink);
+    background: rgba(255, 255, 255, 0.04);
   }
   .vin-tab[aria-selected='true'] {
     color: var(--vin-ink);
-    border-bottom-color: var(--vin-ink);
-    font-weight: 500;
+    background: rgba(39, 39, 46, 0.85);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 
-  /* --- status chips ------------------------------------------------------ */
+  /* --- status chips --- */
 
   .vin-status-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    font-size: 0.625rem;
-    letter-spacing: 0.16em;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(18, 18, 22, 0.6);
+    padding: 0.25rem 0.65rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--vin-muted);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
-  /* --- ticker ------------------------------------------------------------ */
+  /* --- ticker / status ribbon --- */
 
   .vin-marquee {
     position: relative;
     overflow: hidden;
-    background: var(--vin-bone-deep);
+    background: rgba(24, 24, 28, 0.45);
     color: var(--vin-ink);
-    border-top: 1px solid var(--vin-hair);
-    border-bottom: 1px solid var(--vin-hair);
-    padding: 0.6rem 0;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.45rem 0;
   }
   .vin-marquee-track {
     display: flex;
     width: max-content;
-    animation: vin-marquee 42s linear infinite;
+    animation: vin-marquee 45s linear infinite;
+  }
+  .vin-marquee-track:hover {
+    animation-play-state: paused;
   }
   .vin-marquee-track span {
-    padding-right: 2.75rem;
-    font-size: 0.625rem;
-    letter-spacing: 0.26em;
+    padding-right: 2.5rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     white-space: nowrap;
+    color: var(--vin-muted);
   }
 
-  /* --- cursor highlight -------------------------------------------------- */
-
+  /* --- cursor highlight (non-interfering) --- */
   .vin-cursor {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 70;
-    display: none;
-    place-items: center;
-    width: 10px;
-    height: 10px;
-    margin: -5px 0 0 -5px;
-    border-radius: 999px;
-    background: var(--vin-ink);
-    pointer-events: none;
-    transition:
-      width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      margin 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  html.vin-cursor-on .vin-cursor {
-    display: grid;
-  }
-  .vin-cursor[data-active='true'] {
-    width: 58px;
-    height: 58px;
-    margin: -29px 0 0 -29px;
-  }
-  .vin-cursor::after {
-    content: attr(data-label);
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    color: #0f0f0e;
-    opacity: 0;
-    transition: opacity 0.18s ease;
-  }
-  .vin-cursor[data-active='true']::after {
-    opacity: 1;
+    display: none !important;
   }
 
-  /* --- tables ------------------------------------------------------------ */
+  /* --- tables --- */
 
   .vin-th {
     padding-bottom: 0.5rem;
-    font-size: 0.5625rem;
-    letter-spacing: 0.16em;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--vin-muted);
   }
 }
 
-/* --- motion --------------------------------------------------------------- */
-
-@keyframes vin-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-    clip-path: inset(0 0 18% 0);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    clip-path: inset(0 0 0 0);
-  }
-}
+/* --- motion --- */
 
 @keyframes vin-marquee {
   from {
@@ -492,22 +437,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .vin-panel,
   .vin-marquee-track {
     animation: none !important;
   }
   .vin-row,
-  .vin-row::after,
   .vin-tile,
-  .vin-nav-link::after,
-  .vin-cursor,
+  .vin-nav-link,
   .vin-btn {
     transition: none !important;
-  }
-  .vin-row:hover {
-    padding-left: 0;
-  }
-  .vin-cursor {
-    display: none !important;
   }
 }

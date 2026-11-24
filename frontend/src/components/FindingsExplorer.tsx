@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  X,
+} from 'lucide-react'
 import type { Finding, Severity } from '../api'
 import { ConfidenceBadge, EmptyState, ErrorState, Panel, SeverityBadge } from './ui'
 
@@ -50,7 +56,8 @@ export default function FindingsExplorer({
     })
     list = [...list].sort((a, b) => {
       if (sort === 'title') return a.title.localeCompare(b.title)
-      if (sort === 'module') return a.source_module.localeCompare(b.source_module) || a.title.localeCompare(b.title)
+      if (sort === 'module')
+        return a.source_module.localeCompare(b.source_module) || a.title.localeCompare(b.title)
       const rank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 }
       return (
         (rank[a.severity] ?? 5) - (rank[b.severity] ?? 5) || a.title.localeCompare(b.title)
@@ -69,31 +76,41 @@ export default function FindingsExplorer({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Panel
         title="Findings explorer"
         testId="explorer-panel"
         actions={
-          <span className="text-xs text-slate-500" data-testid="explorer-count">
+          <span
+            className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs font-medium text-zinc-400"
+            data-testid="explorer-count"
+          >
             {filtered.length} of {findings.length} findings
           </span>
         }
       >
-        <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-5">
-          <label className="flex flex-col gap-1 text-xs text-slate-500 md:col-span-2">
-            Search
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                resetPaging()
-              }}
-              placeholder="title, asset, module…"
-              aria-label="Search findings"
-              className="vin-input text-sm"
-            />
-          </label>
+        {/* Search & Filter Toolbar */}
+        <div className="mb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="sm:col-span-2">
+            <label className="flex flex-col gap-1 text-xs font-medium text-zinc-400">
+              Search findings
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-3.5 w-3.5 text-zinc-500" aria-hidden />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    resetPaging()
+                  }}
+                  placeholder="title, asset, module…"
+                  aria-label="Search findings"
+                  className="vin-input w-full pl-9 text-sm"
+                />
+              </div>
+            </label>
+          </div>
+
           <SelectFilter
             label="Severity"
             value={severity}
@@ -103,6 +120,7 @@ export default function FindingsExplorer({
               resetPaging()
             }}
           />
+
           <SelectFilter
             label="Confidence"
             value={confidence}
@@ -112,6 +130,7 @@ export default function FindingsExplorer({
               resetPaging()
             }}
           />
+
           <SelectFilter
             label="Category"
             value={category}
@@ -122,27 +141,33 @@ export default function FindingsExplorer({
             }}
           />
         </div>
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-slate-500">Sort</span>
-          <select
-            value={sort}
-            onChange={(e) => {
-              setSort(e.target.value)
-              resetPaging()
-            }}
-            aria-label="Sort findings"
-            className="vin-input py-1 text-xs"
-          >
-            {SORTS.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+
+        {/* Sort toolbar */}
+        <div className="mb-4 flex items-center justify-between border-b border-zinc-800/40 pb-3 text-xs">
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-3.5 w-3.5 text-zinc-500" aria-hidden />
+            <span className="font-medium text-zinc-400">Sort</span>
+            <select
+              value={sort}
+              onChange={(e) => {
+                setSort(e.target.value)
+                resetPaging()
+              }}
+              aria-label="Sort findings"
+              className="vin-input py-1 px-2.5 text-xs font-medium bg-zinc-900 border-zinc-700/60"
+            >
+              {SORTS.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
+        {/* List states */}
         {error ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <ErrorState message={error} onRetry={onRetry} />
             <EmptyState
               message="Findings unavailable."
@@ -150,7 +175,7 @@ export default function FindingsExplorer({
             />
           </div>
         ) : loading && findings.length === 0 ? (
-          <p className="text-sm text-slate-500" role="status">
+          <p className="text-sm text-zinc-400 py-4" role="status">
             Loading findings…
           </p>
         ) : findings.length === 0 ? (
@@ -162,36 +187,47 @@ export default function FindingsExplorer({
           <EmptyState message="No findings match the current filters." hint="Adjust search or filters." />
         ) : (
           <>
-            <ul className="divide-y divide-white/5 rounded-none border border-white/5 bg-white/[0.04] px-2" data-testid="explorer-list">
+            <ul
+              className="divide-y divide-zinc-800/60 rounded-lg border border-zinc-800/60 bg-zinc-900/30"
+              data-testid="explorer-list"
+            >
               {pageItems.map((f) => (
                 <li key={f.id}>
                   <button
                     type="button"
                     onClick={() => setSelected(f)}
-                    className="flex w-full items-center gap-2 rounded-sm px-1 py-2.5 text-left text-sm transition-colors hover:text-cyan-700"
+                    className="flex w-full items-center gap-3 px-3.5 py-3 text-left text-sm transition-colors hover:bg-zinc-800/40 focus:outline-none focus:bg-zinc-800/50"
                     aria-label={`finding ${f.title}`}
                   >
                     <SeverityBadge severity={f.severity} />
-                    <span className="min-w-0 flex-1 truncate">{f.title}</span>
+                    <span className="min-w-0 flex-1 truncate font-medium text-zinc-200">
+                      {f.title}
+                    </span>
                     <ConfidenceBadge confidence={f.confidence} />
-                    <span className="hidden w-32 shrink-0 truncate font-mono text-xs text-slate-600 md:block">
+                    <span className="hidden font-mono text-xs text-zinc-400 md:block max-w-[140px] truncate shrink-0">
                       {f.source_module}
                     </span>
                   </button>
                 </li>
               ))}
             </ul>
+
+            {/* Pagination Controls */}
             {pageCount > 1 && (
-              <div className="mt-3 flex items-center justify-between" data-testid="explorer-pagination">
-                <span className="text-xs text-slate-500">
+              <div
+                className="mt-4 flex items-center justify-between text-xs text-zinc-400 pt-2"
+                data-testid="explorer-pagination"
+              >
+                <span>
                   Page {safePage + 1} of {pageCount}
                 </span>
-                <span className="flex gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     aria-label="Previous page"
                     disabled={safePage === 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}                      className="vin-btn-ghost p-1.5 !text-slate-300 disabled:opacity-40"
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    className="vin-btn-ghost p-1.5 disabled:opacity-40"
                   >
                     <ChevronLeft className="h-4 w-4" aria-hidden />
                   </button>
@@ -199,17 +235,19 @@ export default function FindingsExplorer({
                     type="button"
                     aria-label="Next page"
                     disabled={safePage >= pageCount - 1}
-                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}                      className="vin-btn-ghost p-1.5 !text-slate-300 disabled:opacity-40"
+                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                    className="vin-btn-ghost p-1.5 disabled:opacity-40"
                   >
                     <ChevronRight className="h-4 w-4" aria-hidden />
                   </button>
-                </span>
+                </div>
               </div>
             )}
           </>
         )}
       </Panel>
 
+      {/* Selected Finding Detail Drawer/Card */}
       {selected && <FindingDetail finding={selected} onClose={() => setSelected(null)} />}
     </div>
   )
@@ -227,13 +265,13 @@ function SelectFilter({
   onChange: (v: string) => void
 }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-slate-500">
+    <label className="flex flex-col gap-1 text-xs font-medium text-zinc-400">
       {label}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         aria-label={label}
-        className="vin-input py-1.5 text-sm"
+        className="vin-input py-2 text-xs font-medium bg-zinc-900 border-zinc-700/60"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -255,53 +293,65 @@ export function FindingDetail({ finding, onClose }: { finding: Finding; onClose:
           type="button"
           onClick={onClose}
           aria-label="Close finding detail"
-          className="vin-btn-ghost px-2.5 py-0.5 text-xs"
+          className="vin-btn-ghost px-3 py-1 text-xs"
         >
+          <X className="h-3.5 w-3.5" aria-hidden />
           Close
         </button>
       }
     >
-      <h3 className="text-sm font-medium text-slate-200">{finding.title}</h3>
-      <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1.5 text-xs md:grid-cols-2">
-        <Row label="Severity" value={<SeverityBadge severity={finding.severity} />} />
-        <Row label="Confidence" value={<ConfidenceBadge confidence={finding.confidence} />} />
-        <Row label="Verification status" value={finding.verification_status} />
-        <Row label="Category" value={finding.category} />
-        <Row label="Source module" value={<span className="font-mono">{finding.source_module}</span>} />
-        <Row
-          label="Affected asset"
-          value={<span className="break-all font-mono">{finding.affected_asset}</span>}
-        />
-        <Row label="CWE" value={finding.cwe ?? 'not reported'} />
-        <Row
-          label="Evidence (redacted by the source module)"
-          value={
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-sm border border-white/5 bg-slate-950 p-2.5 text-[11px] text-slate-400">
-              {JSON.stringify(finding.evidence ?? {}, null, 2)}
-            </pre>
-          }
-        />
-        {finding.description && <Row label="Observation" value={finding.description} full />}
-        {finding.impact && <Row label="Impact" value={finding.impact} full />}
-        {finding.remediation && (
-          <Row
-            label="Remediation guidance"
-            value={finding.remediation}
-            full
-            testId="finding-remediation"
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold text-zinc-100">{finding.title}</h3>
+
+        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 rounded-lg border border-zinc-800/60 bg-zinc-900/40 p-4 text-xs">
+          <DetailRow label="Severity" value={<SeverityBadge severity={finding.severity} />} />
+          <DetailRow label="Confidence" value={<ConfidenceBadge confidence={finding.confidence} />} />
+          <DetailRow label="Verification status" value={<span className="font-mono text-zinc-300">{finding.verification_status}</span>} />
+          <DetailRow label="Category" value={<span className="text-zinc-300">{finding.category}</span>} />
+          <DetailRow label="Source module" value={<span className="font-mono text-zinc-300">{finding.source_module}</span>} />
+          <DetailRow
+            label="Affected asset"
+            value={<span className="break-all font-mono text-zinc-300">{finding.affected_asset}</span>}
           />
-        )}
-      </dl>
-      <p className="mt-3 text-[11px] text-slate-600">
-        Evidence is shown exactly as the source module stored it (secret-like values are redacted at
-        capture time). Verification status is provided by the scanner modules and is never upgraded
-        by the UI.
-      </p>
+          <DetailRow label="CWE" value={<span className="font-mono text-sky-400">{finding.cwe ?? 'not reported'}</span>} />
+
+          <DetailRow
+            label="Evidence (redacted by the source module)"
+            value={
+              <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-md border border-zinc-800 bg-zinc-950 p-3 font-mono text-[11px] text-zinc-300">
+                {JSON.stringify(finding.evidence ?? {}, null, 2)}
+              </pre>
+            }
+            full
+          />
+
+          {finding.description && <DetailRow label="Observation" value={<p className="text-zinc-300 leading-relaxed">{finding.description}</p>} full />}
+          {finding.impact && <DetailRow label="Impact" value={<p className="text-zinc-300 leading-relaxed">{finding.impact}</p>} full />}
+          {finding.remediation && (
+            <DetailRow
+              label="Remediation guidance"
+              value={
+                <div className="rounded-lg border border-sky-500/30 bg-sky-950/20 p-3 text-sky-200">
+                  <p className="leading-relaxed">{finding.remediation}</p>
+                </div>
+              }
+              full
+              testId="finding-remediation"
+            />
+          )}
+        </dl>
+
+        <p className="text-[11px] text-zinc-500">
+          Evidence is shown exactly as the source module stored it (secret-like values are redacted at
+          capture time). Verification status is provided by the scanner modules and is never upgraded
+          by the UI.
+        </p>
+      </div>
     </Panel>
   )
 }
 
-function Row({
+function DetailRow({
   label,
   value,
   full,
@@ -313,9 +363,9 @@ function Row({
   testId?: string
 }) {
   return (
-    <div className={full ? 'md:col-span-2' : ''} data-testid={testId}>
-      <dt className="text-slate-500">{label}</dt>
-      <dd className="text-slate-300">{value}</dd>
+    <div className={full ? 'col-span-full' : ''} data-testid={testId}>
+      <dt className="text-zinc-400 font-medium mb-0.5">{label}</dt>
+      <dd className="text-zinc-300">{value}</dd>
     </div>
   )
 }

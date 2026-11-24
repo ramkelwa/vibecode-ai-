@@ -1,26 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ExternalLink, ShieldAlert, ShieldQuestion } from 'lucide-react'
+import { ExternalLink, Globe, Search, Send, ShieldAlert, ShieldQuestion } from 'lucide-react'
 import { api, ApiError, type VirustotalResult } from '../api'
 import { isValidTargetUrl } from './NewScanForm'
-import { Panel, LoadingState, ErrorState } from './ui'
+import { ErrorState, LoadingState, Panel } from './ui'
 
-/**
- * VirusTotal Threat Intelligence panel.
- *
- * Distinct from VibeShield's own scanner: every result shown here is labeled as
- * third-party data from VirusTotal. Zero detections are NEVER presented as
- * "safe" — the neutral wording required by the product spec is used instead.
- *
- * Two separate actions:
- *  1. "Check for existing report" — read-only lookup, but the URL is still
- *     sent to the VirusTotal API to identify the public report.
- *  2. "Submit new scan" — shares the URL with the third-party service
- *     VirusTotal and requires explicit confirmation first.
- */
-
-// Polling constraints (spec: bounded attempts + duration, no overlap).
 const POLL_INTERVAL_MS = 10_000
-const POLL_MAX_ATTEMPTS = 30 // ~5 minutes
+const POLL_MAX_ATTEMPTS = 30
 
 type Phase =
   | 'idle'
@@ -76,11 +61,10 @@ export default function VirusTotalPanel({
   const [error, setError] = useState<string | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  // Polling lifecycle refs — all attempts stop on unmount or when a new
-  // action (new URL / new scan) starts, so no stale background polling.
   const aliveRef = useRef(true)
   const runIdRef = useRef(0)
   const lastAutoLookupRef = useRef('')
+
   useEffect(() => {
     aliveRef.current = true
     return () => {
@@ -88,10 +72,8 @@ export default function VirusTotalPanel({
     }
   }, [])
 
-  /** Reset all volatile state — used whenever a new URL or scan starts so
-   * results from a previous URL can never be displayed for a new one. */
   const reset = useCallback(() => {
-    runIdRef.current += 1 // cancels any in-flight poll loop
+    runIdRef.current += 1
     setResult(null)
     setError(null)
   }, [])
@@ -151,7 +133,7 @@ export default function VirusTotalPanel({
           if (r.status === 'failed') setError('The VirusTotal analysis failed upstream.')
           return
         }
-        setResult(r) // keep latest queued status visible
+        setResult(r)
         if (attempt >= POLL_MAX_ATTEMPTS) {
           setPhase('submit_error')
           setError('Analysis is still pending after the polling limit. Try again later or open the VirusTotal report link.')
@@ -205,191 +187,203 @@ export default function VirusTotalPanel({
 
   return (
     <Panel title="VirusTotal Threat Intelligence" testId="virustotal-panel">
-      <p className="mb-3 text-xs text-slate-500">
-        Third-party data from VirusTotal — distinct from VibeShield&apos;s own security checks.
-        Checking or submitting sends the URL, including query parameters, to VirusTotal. Do not
-        use confidential URLs or URLs containing secrets. Zero detections never means a site is
-        proven safe.
-      </p>
-
-      {configured === false && (
-        <p className="mb-3 border-l-2 border-amber-600 bg-slate-50 p-2.5 text-xs text-slate-300" role="note">
-          VirusTotal is not configured on this server (missing API key). This panel is disabled.
+      <div className="space-y-4">
+        <p className="text-xs text-zinc-400 leading-relaxed">
+          Third-party data from VirusTotal — distinct from VibeShield&apos;s own security checks.
+          Checking or submitting sends the URL, including query parameters, to VirusTotal. Do not
+          use confidential URLs or URLs containing secrets. Zero detections never means a site is
+          proven safe.
         </p>
-      )}
 
-      <form
-        className="flex flex-col gap-3"
-        onSubmit={(e) => {
-          e.preventDefault()
-          // Primary action = read-only lookup; separate button handles submission.
-          setError(null)
-          if (!isValidTargetUrl(url)) {
-            reset()
-            setPhase('check_error')
-            setError('Enter a valid http:// or https:// URL with a hostname.')
-            return
-          }
-          void lookupReport()
-        }}
-      >
-        <label htmlFor="vt-url" className="text-xs font-medium text-slate-400">
-          URL to check (THIRD-PARTY THREAT INTELLIGENCE, not from VibeShield&apos;s scanner)
-        </label>
-        <div className="flex gap-2">
-          <input
-            id="vt-url"
-            type="text"
-            required
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://target.example.com"
-            className="vin-input flex-1 text-sm"
-          />
-          <button
-            type="submit"
-            disabled={busy || configured === false}
-            className="vin-btn-primary px-3 py-2 text-sm"
-          >
-            Check with VirusTotal
-          </button>
-          <button
-            type="button"
-            disabled={busy || configured === false}
-            onClick={startSubmitFlow}
-            className="vin-btn-ghost px-3 py-2 text-sm"
-          >
-            Submit new scan
-          </button>
-        </div>
-      </form>
-
-      {/* New-submission privacy confirmation (required before sharing) */}
-      {confirmOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confirm third-party submission"
-          data-testid="vt-consent"
-          className="mt-3 border-l-2 border-amber-600 bg-slate-50 p-3 text-sm text-slate-300"
-        >
-          <p className="mb-2 font-medium flex items-center gap-2">
-            <ShieldAlert className="h-4 w-4" aria-hidden /> Share this URL with VirusTotal?
+        {configured === false && (
+          <p className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-300" role="note">
+            VirusTotal is not configured on this server (missing API key). This panel is disabled.
           </p>
-          <ul className="mb-2 list-disc pl-5 text-xs text-slate-500">
-            <li>
-              The URL (full address incl.<b>query parameters</b>) is sent to the third-party
-              service VirusTotal and may be stored and publicly shared per their terms.
-            </li>
-            <li>Query parameters can contain session IDs, tokens, or email addresses.</li>
-            <li>Do not submit confidential internal URLs, private links, or URLs with secrets.</li>
-          </ul>
-          <div className="flex gap-2">
+        )}
+
+        <form
+          className="flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            setError(null)
+            if (!isValidTargetUrl(url)) {
+              reset()
+              setPhase('check_error')
+              setError('Enter a valid http:// or https:// URL with a hostname.')
+              return
+            }
+            void lookupReport()
+          }}
+        >
+          <label htmlFor="vt-url" className="text-xs font-medium text-zinc-400">
+            URL to check (THIRD-PARTY THREAT INTELLIGENCE, not from VibeShield&apos;s scanner)
+          </label>
+          <div className="flex flex-wrap gap-2.5">
+            <div className="relative flex-1 min-w-[260px]">
+              <Globe className="absolute left-3.5 top-3 h-4 w-4 text-zinc-500" aria-hidden />
+              <input
+                id="vt-url"
+                type="text"
+                required
+                aria-label="URL to check"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://target.example.com"
+                className="vin-input w-full pl-10 text-sm"
+              />
+            </div>
             <button
-              type="button"
-              data-testid="vt-consent-confirm"
-              onClick={() => void submitNewScan()}
-              className="rounded-full border border-amber-600 bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-slate-950 transition-colors hover:bg-amber-700"
+              type="submit"
+              disabled={busy || configured === false}
+              className="vin-btn-primary px-4 py-2 text-sm font-medium"
             >
-              I understand, submit
+              <Search className="h-4 w-4" aria-hidden />
+              Check with VirusTotal
             </button>
             <button
               type="button"
-              onClick={() => setConfirmOpen(false)}
-              className="vin-btn-ghost px-3 py-1.5 text-xs "
+              disabled={busy || configured === false}
+              onClick={startSubmitFlow}
+              className="vin-btn-ghost px-4 py-2 text-sm font-medium"
             >
-              Cancel
+              <Send className="h-3.5 w-3.5" aria-hidden />
+              Submit new scan
             </button>
           </div>
-        </div>
-      )}
+        </form>
 
-      {/* States */}
-      {(busy || phase === 'queued' || phase === 'polling') && (
-        <div className="mt-3">
-          <LoadingState
-            label={
-              phase === 'checking'
-                ? 'Checking VirusTotal report…'
-                : phase === 'submitting'
-                  ? 'Submitting URL to VirusTotal…'
-                  : 'Analysis pending — polling VirusTotal…'
-            }
-          />
-        </div>
-      )}
-
-      {error && (phase === 'check_error' || phase === 'submit_error') && (
-        <div className="mt-3">
-          <ErrorState
-            message={error}
-            onRetry={phase === 'check_error' ? () => lookupReport() : undefined}
-          />
-        </div>
-      )}
-
-      {showResult && result && (
-        <div className="vin-panel-soft mt-3 p-3" data-testid="vt-result">
-          <p className="mb-1 text-xs font-medium text-slate-400">
-            <span role="status" aria-label={STATUS_LABELS[phase] ?? result.status}>
-              ● {STATUS_LABELS[phase] ?? result.status}
-            </span>
-            {result.last_analysis_date
-              ? ` — last analysis ${new Date(result.last_analysis_date).toLocaleString()}`
-              : ''}
-          </p>
-          <p className="mb-2 text-sm text-slate-300" data-testid="vt-verdict">
-            {resultStatusLine(result)}
-          </p>
-          {result.stats ? (
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-400 sm:grid-cols-3">
-              {(
-                [
-                  ['Malicious', result.stats.malicious],
-                  ['Suspicious', result.stats.suspicious],
-                  ['Harmless', result.stats.harmless],
-                  ['Undetected', result.stats.undetected],
-                  ['Engine timeouts', result.stats.timeout],
-                  ['Engines reporting', result.engines_reporting],
-                ] as Array<[string, number | null]>
-              ).map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-2">
-                  <dt>{label}</dt>
-                  <dd data-testid={`vt-stat-${label.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {value === null ? 'unknown' : value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          ) : result.status === 'not_found' ? (
-            <p className="text-xs text-slate-500">
-              VirusTotal has no existing report for this URL. Use “Submit new scan” to request an
-              analysis (the URL will be shared with the third-party service — see the privacy
-              notice).
+        {/* Confirmation dialog */}
+        {confirmOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm third-party submission"
+            data-testid="vt-consent"
+            className="rounded-xl border border-amber-500/40 bg-zinc-900/95 p-4 shadow-xl backdrop-blur-xl"
+          >
+            <p className="mb-2 font-semibold text-amber-400 flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4" aria-hidden /> Share this URL with VirusTotal?
             </p>
-          ) : (
-            <p className="text-xs text-slate-500">Engine statistics are not available yet.</p>
-          )}
-          {reportLink && (
-            <a
-              href={reportLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="vt-report-link"
-              className="mt-2 inline-flex items-center gap-1 text-xs text-cyan-700 underline decoration-cyan-300/40 underline-offset-2 hover:text-cyan-700"
-            >
-              <ExternalLink className="h-3 w-3" aria-hidden /> View report on VirusTotal
-            </a>
-          )}
-        </div>
-      )}
+            <ul className="mb-3 list-disc pl-5 text-xs text-zinc-300 space-y-1">
+              <li>
+                The URL (full address incl. <b>query parameters</b>) is sent to the third-party
+                service VirusTotal and may be stored and publicly shared per their terms.
+              </li>
+              <li>Query parameters can contain session IDs, tokens, or email addresses.</li>
+              <li>Do not submit confidential internal URLs, private links, or URLs with secrets.</li>
+            </ul>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                data-testid="vt-consent-confirm"
+                onClick={() => void submitNewScan()}
+                className="vin-btn-primary bg-amber-500 text-zinc-950 hover:bg-amber-400 px-4 py-1.5 text-xs font-semibold"
+              >
+                I understand, submit
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="vin-btn-ghost px-3.5 py-1.5 text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
-      {phase === 'idle' && !result && (
-        <p className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-          <ShieldQuestion className="h-4 w-4" aria-hidden /> Enter a URL above, then check for an
-          existing report.
-        </p>
-      )}
+        {/* States */}
+        {(busy || phase === 'queued' || phase === 'polling') && (
+          <div className="py-2">
+            <LoadingState
+              label={
+                phase === 'checking'
+                  ? 'Checking VirusTotal report…'
+                  : phase === 'submitting'
+                    ? 'Submitting URL to VirusTotal…'
+                    : 'Analysis pending — polling VirusTotal…'
+              }
+            />
+          </div>
+        )}
+
+        {error && (phase === 'check_error' || phase === 'submit_error') && (
+          <div className="py-1">
+            <ErrorState
+              message={error}
+              onRetry={phase === 'check_error' ? () => lookupReport() : undefined}
+            />
+          </div>
+        )}
+
+        {showResult && result && (
+          <div className="rounded-lg border border-zinc-800/60 bg-zinc-900/40 p-4" data-testid="vt-result">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                <span role="status" aria-label={STATUS_LABELS[phase] ?? result.status}>
+                  ● {STATUS_LABELS[phase] ?? result.status}
+                </span>
+                {result.last_analysis_date
+                  ? ` — last analysis ${new Date(result.last_analysis_date).toLocaleString()}`
+                  : ''}
+              </p>
+            </div>
+            <p className="mb-3 text-sm font-medium text-zinc-200" data-testid="vt-verdict">
+              {resultStatusLine(result)}
+            </p>
+            {result.stats ? (
+              <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                {(
+                  [
+                    ['Malicious', result.stats.malicious],
+                    ['Suspicious', result.stats.suspicious],
+                    ['Harmless', result.stats.harmless],
+                    ['Undetected', result.stats.undetected],
+                    ['Engine timeouts', result.stats.timeout],
+                    ['Engines reporting', result.engines_reporting],
+                  ] as Array<[string, number | null]>
+                ).map(([label, value]) => (
+                  <div key={label} className="vin-tile p-2.5 flex justify-between gap-2">
+                    <dt className="text-zinc-400 font-medium">{label}</dt>
+                    <dd
+                      data-testid={`vt-stat-${label.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="font-semibold text-zinc-200 tabular-nums font-mono"
+                    >
+                      {value === null ? 'unknown' : value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : result.status === 'not_found' ? (
+              <p className="text-xs text-zinc-500">
+                VirusTotal has no existing report for this URL. Use “Submit new scan” to request an
+                analysis (the URL will be shared with the third-party service — see the privacy
+                notice).
+              </p>
+            ) : (
+              <p className="text-xs text-zinc-500">Engine statistics are not available yet.</p>
+            )}
+            {reportLink && (
+              <a
+                href={reportLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="vt-report-link"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 font-medium hover:underline"
+              >
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden /> View report on VirusTotal
+              </a>
+            )}
+          </div>
+        )}
+
+        {phase === 'idle' && !result && (
+          <p className="flex items-center gap-2 text-xs text-zinc-500 py-1">
+            <ShieldQuestion className="h-4 w-4" aria-hidden /> Enter a URL above, then check for an
+            existing report.
+          </p>
+        )}
+      </div>
     </Panel>
   )
 }

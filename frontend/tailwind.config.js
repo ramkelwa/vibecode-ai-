@@ -1,16 +1,13 @@
 /**
  * Tailwind configuration for VibeShield AI frontend.
  *
- * Design language: editorial interface on matte black — the Preymaker
- * (DashDigital) typographic system inverted. Two colours carry almost
- * everything — matte black #0F0F0E and warm white #F6F5F0 — with hairline
- * rules instead of cards, shadows or gradients. The ramps below are
- * inversion-compatible with the class names already used across the app, so
- * `text-slate-100` resolves to warm white and `bg-slate-950` to the raised
- * matte surface.
+ * Modern security operations design system inspired by shadcn/ui and Radix UI:
+ * Deep obsidian surfaces, refined hairline borders, crisp typography, and
+ * WCAG-compliant high-contrast status and severity indicators.
  */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -19,89 +16,110 @@ export default {
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
+          'BlinkMacSystemFont',
           '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
           'sans-serif',
+        ],
+        mono: [
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          '"Liberation Mono"',
+          '"Courier New"',
+          'monospace',
         ],
       },
       colors: {
+        // High-contrast slate/zinc ramp mapped for compatibility with existing components
         slate: {
-          50: '#171716', // raised matte surface
-          100: '#f6f5f0', // primary white (headings)
-          200: '#eae9e3',
-          300: '#cfcec7', // body copy
-          400: '#a5a49c', // muted
-          500: '#8b8a83',
-          600: '#7a7973', // faint / captions
-          700: '#3a3a36', // hairline (as a solid)
-          800: '#2a2a27',
-          900: '#1f1f1d', // raised block, used at low opacity for rules
-          950: '#121211', // matte surface (chips, code blocks)
+          50: '#141416', // elevated dark surface for cards and panels
+          100: '#fafafa', // primary crisp white for headings
+          200: '#f4f4f5', // secondary white
+          300: '#d4d4d8', // primary body text (high contrast)
+          400: '#a1a1aa', // muted captions and metadata (WCAG AA > 4.5:1)
+          500: '#71717a', // subtle helper text
+          600: '#52525b', // faint tags and borders
+          700: '#3f3f46', // subtle hairline border
+          800: '#27272a', // standard card border
+          900: '#18181b', // card background
+          950: '#09090b', // obsidian page background
         },
-        /* Interaction accent: warm white itself, so links and focus read as type. */
+        // Real cyan & sky accents for links and focus indicators
         cyan: {
-          50: '#171716',
-          100: '#1f1f1d',
-          200: '#2a2a27',
-          300: '#6a6963',
-          400: '#8b8a83',
-          500: '#a5a49c',
-          600: '#cfcec7',
-          700: '#edece6',
-          800: '#f6f5f0',
-          900: '#fbfaf6',
-          950: '#ffffff',
+          50: '#083344',
+          100: '#0e4e68',
+          200: '#075985',
+          300: '#0284c7',
+          400: '#0ea5e9',
+          500: '#38bdf8',
+          600: '#7dd3fc',
+          700: '#38bdf8', // crisp legible link on dark
+          800: '#bae6fd',
+          900: '#e0f2fe',
+          950: '#f0f9ff',
         },
         sky: {
-          50: '#171716',
-          100: '#1f1f1d',
-          200: '#2a2a27',
-          300: '#6a6963',
-          400: '#8b8a83',
-          500: '#a5a49c',
-          600: '#cfcec7',
-          700: '#edece6',
-          800: '#f6f5f0',
-          900: '#fbfaf6',
-          950: '#ffffff',
+          50: '#082f49',
+          100: '#0c4a6e',
+          200: '#0369a1',
+          300: '#0284c7',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#38bdf8',
+          700: '#7dd3fc',
+          800: '#bae6fd',
+          900: '#e0f2fe',
+          950: '#f0f9ff',
         },
-        /* Machine-written text (AI explanations) gets one warm stone accent so it
-           can never be mistaken for scanner evidence. Lightened for dark ground. */
+        // AI explanation accent (warm violet / amethyst)
         violet: {
-          100: '#2a2418',
-          200: '#3c3322',
-          300: '#c9b795',
-          400: '#ad9a75',
-          500: '#8f7c56',
-          600: '#7a6844',
-          700: '#d9c49b',
-          800: '#e8d9ba',
-          900: '#f2e8d4',
-          950: '#fbf6ec',
+          100: '#2e1065',
+          200: '#4c1d95',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7',
+          600: '#9333ea',
+          700: '#e9d5ff',
+          800: '#f3e8ff',
+          900: '#faf5ff',
+          950: '#fcfaff',
         },
-        /* Success keeps a quiet green: status is meaning, not decoration. */
+        // Success green
         emerald: {
-          100: '#12241a',
-          200: '#193327',
-          300: '#8ad4ab',
-          400: '#6fbf93',
-          500: '#58a97d',
-          600: '#4fa57b',
-          700: '#8ad4ab',
-          800: '#b2e6c8',
-          900: '#d6f3e2',
-          950: '#ecfaf1',
+          100: '#022c22',
+          200: '#064e3b',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#a7f3d0',
+          800: '#d1fae5',
+          900: '#ecfdf5',
+          950: '#f0fdf4',
         },
-        /*
-         * Severity keeps distinct hues: a risky finding must never read as the
-         * white editorial accent. Values are lifted to stay legible on black.
-         */
+        // Cybersecurity severity spectrum (WCAG AA legible on #09090b)
         severity: {
-          critical: '#e879f9',
-          high: '#f87171',
-          medium: '#f0a64b',
-          low: '#7eb6f2',
-          info: '#8b8a83',
+          critical: '#ef4444', // red-500
+          high: '#f97316', // orange-500
+          medium: '#f59e0b', // amber-500
+          low: '#38bdf8', // sky-400
+          info: '#94a3b8', // slate-400
         },
+      },
+      borderRadius: {
+        lg: '0.625rem',
+        md: '0.5rem',
+        sm: '0.375rem',
+      },
+      boxShadow: {
+        card: '0 4px 20px -2px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
+        'card-hover': '0 8px 30px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+        subtle: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
       },
     },
   },

@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { FileJson, FileText, Sparkles, XCircle } from 'lucide-react'
+import {
+  Clock,
+  FileJson,
+  FileText,
+  Globe,
+  Loader2,
+  Sparkles,
+  XCircle,
+} from 'lucide-react'
 import {
   api,
   ApiError,
@@ -23,19 +31,14 @@ export default function ScanDetail({
 }) {
   const [cancelPending, setCancelPending] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
-  // Phase 7: per-finding AI explanation state (optional, clearly labeled).
   const [explainPendingId, setExplainPendingId] = useState<string | null>(null)
   const [explanations, setExplanations] = useState<Record<string, AiExplanation>>({})
   const [explainErrors, setExplainErrors] = useState<Record<string, string>>({})
-  // Whether a real AI provider exists is server state, not something the UI can
-  // assume: with the "offline" family the explain action returns a local
-  // rule-based interpretation. The button must say so before it is clicked.
   const [aiStatus, setAiStatus] = useState<AiProviderStatus | null>(null)
   const aiStatusLoaded = useRef(false)
   const scanId = detail?.scan.id ?? null
+
   useEffect(() => {
-    // Only ask once a scan is actually displayed: an empty report shell must not
-    // add background requests of its own.
     if (!scanId || aiStatusLoaded.current) return
     aiStatusLoaded.current = true
     let cancelled = false
@@ -55,7 +58,7 @@ export default function ScanDetail({
   if (!detail) {
     return (
       <Panel title="Scan details" testId="scan-detail-panel">
-        <p className="text-sm text-slate-500">Select a scan to see details.</p>
+        <p className="text-sm text-zinc-400 py-2">Select a scan to see details.</p>
       </Panel>
     )
   }
@@ -99,7 +102,7 @@ export default function ScanDetail({
   const aiEnabled = aiStatus?.enabled === true
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Panel
         title="Scan details"
         testId="scan-detail-panel"
@@ -110,17 +113,17 @@ export default function ScanDetail({
               onClick={cancel}
               disabled={cancelPending}
               aria-busy={cancelPending}
-              className="vin-btn-ghost flex items-center gap-1 px-2 py-1 text-xs disabled:opacity-50"
+              className="vin-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-300 hover:text-red-200 hover:border-red-500/40 disabled:opacity-50"
             >
               <XCircle className="h-3.5 w-3.5" aria-hidden />
               {cancelPending ? 'Cancelling…' : 'Cancel scan'}
             </button>
           ) : (
-            <>
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={onFocusFindings}
-                className="vin-btn-primary px-2.5 py-1 text-xs"
+                className="vin-btn-primary px-3 py-1.5 text-xs font-medium"
               >
                 Open findings
               </button>
@@ -130,7 +133,7 @@ export default function ScanDetail({
                     href={downloads.json}
                     download
                     data-testid="download-json-report"
-                    className="vin-btn-ghost flex items-center gap-1 px-2 py-1 text-xs"
+                    className="vin-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs"
                   >
                     <FileJson className="h-3.5 w-3.5" aria-hidden />
                     JSON report
@@ -139,75 +142,95 @@ export default function ScanDetail({
                     href={downloads.pdf}
                     download
                     data-testid="download-pdf-report"
-                    className="vin-btn-ghost flex items-center gap-1 px-2 py-1 text-xs"
+                    className="vin-btn-ghost flex items-center gap-1.5 px-3 py-1.5 text-xs"
                   >
                     <FileText className="h-3.5 w-3.5" aria-hidden />
                     PDF report
                   </a>
                 </>
               )}
-            </>
+            </div>
           )
         }
       >
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-3">
-          <div className="col-span-2 md:col-span-3">
-            <dt className="text-xs text-slate-500">Scan ID (returned by the API)</dt>
-            <dd className="font-mono text-xs text-slate-300" data-testid="scan-detail-id">
+        {/* Metadata summary grid */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-lg border border-zinc-800/60 bg-zinc-900/40 p-4">
+          <div className="sm:col-span-2">
+            <dt className="text-xs font-medium text-zinc-400">Target</dt>
+            <dd className="mt-1 flex items-center gap-2 truncate font-mono text-sm font-semibold text-zinc-200">
+              <Globe className="h-4 w-4 text-sky-400 shrink-0" aria-hidden />
+              <span className="truncate">{scan.target_url}</span>
+            </dd>
+          </div>
+
+          <div>
+            <dt className="text-xs font-medium text-zinc-400">Status</dt>
+            <dd className="mt-1 flex items-center gap-2 text-sm font-semibold text-zinc-200 capitalize">
+              <StatusDot status={scan.status} />
+              <span>{scan.status}</span>
+            </dd>
+          </div>
+
+          <div>
+            <dt className="text-xs font-medium text-zinc-400">Scan ID</dt>
+            <dd className="mt-1 font-mono text-xs text-zinc-400 select-all" data-testid="scan-detail-id">
               {scan.id}
             </dd>
           </div>
-          <div className="col-span-2">
-            <dt className="text-xs text-slate-500">Target</dt>
-            <dd className="truncate font-mono text-xs text-slate-300">{scan.target_url}</dd>
+
+          <div className="sm:col-span-2 lg:col-span-4 border-t border-zinc-800/40 pt-2 flex flex-wrap items-center justify-between text-xs text-zinc-400">
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-zinc-500" aria-hidden />
+              Started: {scan.started_at ? new Date(scan.started_at).toLocaleString() : 'not started'}
+            </span>
+            <span>
+              Finished: {scan.finished_at ? new Date(scan.finished_at).toLocaleString() : '—'}
+            </span>
           </div>
-          <div>
-            <dt className="text-xs text-slate-500">Status</dt>
-            <dd className="flex items-center gap-1.5 text-xs">
-              <StatusDot status={scan.status} />
-              {scan.status}
-            </dd>
-          </div>
-          <div className="col-span-2">
-            <dt className="text-xs text-slate-500">Started / finished</dt>
-            <dd className="text-xs text-slate-400">
-              {scan.started_at ?? 'not started'}
-              {' → '}
-              {scan.finished_at ?? '—'}
-            </dd>
-          </div>
+
           {scan.error && (
-            <div className="col-span-2 md:col-span-3">
-              <dt className="text-xs text-slate-500">API error</dt>
-              <dd className="text-xs text-red-600" role="alert">
-                {scan.error}
-              </dd>
+            <div className="col-span-full border-t border-red-500/20 pt-2 text-xs text-red-400" role="alert">
+              <strong>Error:</strong> {scan.error}
             </div>
           )}
-        </dl>
+        </div>
 
-        <div className="mt-4" data-testid="stage-list">
-          <div className="mb-1 text-xs text-slate-500">
-            Module stages ({stages.filter((s) => s.status === 'completed').length}/{stages.length}{' '}
-            completed)
+        {/* Module stages list */}
+        <div className="mt-5" data-testid="stage-list">
+          <div className="mb-2 flex items-center justify-between text-xs text-zinc-400">
+            <span className="font-semibold uppercase tracking-wider text-zinc-400">
+              Module stages ({stages.filter((s) => s.status === 'completed').length}/{stages.length}{' '}
+              completed)
+            </span>
           </div>
-          <ul className="space-y-1.5 rounded-none border border-white/5 bg-white/[0.04] p-3">
+          <div className="rounded-lg border border-zinc-800/60 bg-zinc-900/30 divide-y divide-zinc-800/40">
             {stages.map((s: ScanStage) => (
-              <li key={s.module} className="flex items-center gap-2 text-sm">
-                <StatusDot status={s.status} />
-                <span className="w-48 shrink-0">{STAGE_LABEL[s.module] ?? s.module}</span>
-                <span className="text-xs text-slate-500">{s.status}</span>
-                {s.detail && <span className="truncate text-xs text-slate-600">{s.detail}</span>}
-              </li>
+              <div key={s.module} className="flex items-center justify-between gap-3 px-3.5 py-2.5 text-xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <StatusDot status={s.status} />
+                  <span className="font-medium text-zinc-200 truncate">
+                    {STAGE_LABEL[s.module] ?? s.module}
+                  </span>
+                  {s.detail && (
+                    <span className="hidden truncate text-zinc-500 md:inline">
+                      — {s.detail}
+                    </span>
+                  )}
+                </div>
+                <span className="rounded border border-zinc-800 bg-zinc-900 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-zinc-400 shrink-0">
+                  {s.status}
+                </span>
+              </div>
             ))}
-          </ul>
+          </div>
+
           {failed.length > 0 && (
             <p className="mt-2 text-xs text-amber-300" role="note" data-testid="partial-failures">
               {failed.length} module stage(s) failed ({failed.map((s) => STAGE_LABEL[s.module] ?? s.module).join(', ')}); results cover the modules that completed.
             </p>
           )}
           {scan.status === 'cancelled' && (
-            <p className="mt-2 text-xs text-slate-400" role="note" data-testid="cancelled-note">
+            <p className="mt-2 text-xs text-zinc-400" role="note" data-testid="cancelled-note">
               This scan was cancelled.
             </p>
           )}
@@ -219,95 +242,109 @@ export default function ScanDetail({
         </div>
       </Panel>
 
+      {/* Stored findings panel with AI explanations */}
       <Panel title={`Findings stored for this scan (${findings.length})`}>
         {aiStatus && !aiEnabled && (
-          <p
-            className="mb-3 rounded-sm border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-xs text-slate-400"
+          <div
+            className="mb-4 rounded-lg border border-violet-500/20 bg-violet-950/15 p-3 text-xs text-zinc-300"
             role="note"
             data-testid="ai-provider-note"
           >
             AI explanations are off: no AI provider is configured on this server, so
             &ldquo;Explain locally&rdquo; builds a rule-based interpretation from the stored
             finding fields. Set{' '}
-            <span className="font-mono text-slate-500">AI_PROVIDER_FAMILY</span> and{' '}
-            <span className="font-mono text-slate-500">AI_API_KEY</span> on the backend to enable
+            <span className="font-mono text-violet-300">AI_PROVIDER_FAMILY</span> and{' '}
+            <span className="font-mono text-violet-300">AI_API_KEY</span> on the backend to enable
             AI-generated text.
-          </p>
+          </div>
         )}
         {findings.length === 0 ? (
-          <p className="text-sm text-slate-500" role="note">
+          <p className="text-sm text-zinc-400 py-3" role="note">
             No findings recorded by this scan's modules.
           </p>
         ) : (
-          <ul className="max-h-72 space-y-1 overflow-y-auto text-sm">
+          <ul className="max-h-80 space-y-2 overflow-y-auto pr-1 text-sm">
             {findings.slice(0, 50).map((f) => {
               const explanation = explanations[f.id]
               const explainError = explainErrors[f.id]
+              const isExplaining = explainPendingId === f.id
               return (
-                <li key={f.id} className="border-b border-white/5 py-1.5">
-                  <div className="flex items-center gap-2">
-                    <SeverityBadge severity={f.severity} />
-                    <span className="min-w-0 flex-1 truncate" title={f.title}>
-                      {f.title}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => explain(f.id)}
-                      disabled={explainPendingId !== null}
-                      aria-busy={explainPendingId === f.id}
-                      data-testid={`explain-finding-${f.id}`}
-                      title={
-                        aiEnabled
-                          ? 'Ask the configured AI provider to interpret this finding'
-                          : 'No AI provider configured — build a local interpretation from stored data'
-                      }
-                      className="vin-btn-ghost flex shrink-0 items-center gap-1 !border-violet-400/30 px-2 py-0.5 text-xs !text-violet-300 disabled:opacity-50"
-                    >
-                      <Sparkles className="h-3 w-3" aria-hidden />
-                      {explainPendingId === f.id
-                        ? aiEnabled
-                          ? 'Asking…'
-                          : 'Working…'
-                        : aiEnabled
-                          ? 'Explain with AI'
-                          : 'Explain locally'}
-                    </button>
-                    <span className="shrink-0 font-mono text-xs text-slate-600">{f.source_module}</span>
+                <li
+                  key={f.id}
+                  className="rounded-lg border border-zinc-800/60 bg-zinc-900/40 p-3 transition-colors hover:border-zinc-700/80"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <SeverityBadge severity={f.severity} />
+                      <span className="truncate font-medium text-zinc-200" title={f.title}>
+                        {f.title}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => explain(f.id)}
+                        disabled={explainPendingId !== null}
+                        aria-busy={isExplaining}
+                        data-testid={`explain-finding-${f.id}`}
+                        title={
+                          aiEnabled
+                            ? 'Ask the configured AI provider to interpret this finding'
+                            : 'No AI provider configured — build a local interpretation from stored data'
+                        }
+                        className="vin-btn-ghost flex shrink-0 items-center gap-1.5 border-violet-500/30 bg-violet-950/20 px-2.5 py-1 text-xs text-violet-300 hover:bg-violet-900/40 hover:text-violet-200 disabled:opacity-50"
+                      >
+                        {isExplaining ? (
+                          <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+                        ) : (
+                          <Sparkles className="h-3 w-3" aria-hidden />
+                        )}
+                        {isExplaining
+                          ? aiEnabled
+                            ? 'Asking…'
+                            : 'Working…'
+                          : aiEnabled
+                            ? 'Explain with AI'
+                            : 'Explain locally'}
+                      </button>
+                      <span className="hidden font-mono text-[11px] text-zinc-400 sm:inline">
+                        {f.source_module}
+                      </span>
+                    </div>
                   </div>
-                  {/* AI output is rendered separately from scanner evidence.
-                     When no text is returned, the panel is shown clearly as an unavailable
-                     note rather than as an AI-generated interpretation. */}
+
                   {explanation && (
                     <div
-                      className="mt-1.5 border-l-2 border-violet-500/60 bg-slate-50 p-2.5 text-xs"
+                      className="mt-3 rounded-md border border-violet-500/30 bg-violet-950/25 p-3 text-xs"
                       data-testid={`ai-explanation-${f.id}`}
                       role={explanation.text ? 'note' : 'alert'}
                     >
-                      <p className="mb-1 flex items-center gap-1 font-medium text-violet-300">
-                        {explanation.label}
+                      <p className="mb-1.5 flex items-center gap-1.5 font-semibold text-violet-300">
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                        <span>{explanation.label}</span>
                         {!explanation.text && (
-                          <>
-                            {' '}— provider <span className="font-mono hover:underline cursor-help">{String(explanation.provider).trim() || '—'}</span>
-                          </>
+                          <span className="font-mono text-zinc-400">
+                            — provider {String(explanation.provider).trim() || '—'}
+                          </span>
                         )}
                       </p>
                       {explanation.text ? (
-                        <p className="whitespace-pre-wrap text-slate-300">{explanation.text}</p>
+                        <p className="whitespace-pre-wrap leading-relaxed text-zinc-200">
+                          {explanation.text}
+                        </p>
                       ) : (
                         <p className="text-amber-300">
                           {explanation.error || 'AI explanation is not available for this scan.'}
                         </p>
                       )}
-                      {/* The offline provider states "no AI provider" in its text, its
-                         label and its warning; render the warning only when it adds
-                         information the label does not already carry. */}
                       {explanation.warning && explanation.provider !== 'local' && (
-                        <p className="mt-1 text-amber-300">{explanation.warning}</p>
+                        <p className="mt-1.5 text-amber-300">{explanation.warning}</p>
                       )}
                     </div>
                   )}
+
                   {explainError && (
-                    <p className="mt-1 text-xs text-amber-300" role="alert">
+                    <p className="mt-2 text-xs text-amber-300" role="alert">
                       AI explanation unavailable: {explainError}
                     </p>
                   )}
