@@ -24,6 +24,7 @@ import VirusTotalFilePanel from './components/VirusTotalFilePanel'
 import { ErrorState } from './components/ui'
 import Scene3D from './components/Scene3D'
 import Cursor from './components/Cursor'
+import ScoringBoard from './components/ScoringBoard'
 
 const VIEW_TITLES: Record<ViewKey, string> = {
   overview: 'Overview',
@@ -400,6 +401,7 @@ export default function App() {
               }
               onRetry={retryScanDetail}
             />
+            <ScoringBoard findings={findings} />
           </div>
         )}
 
