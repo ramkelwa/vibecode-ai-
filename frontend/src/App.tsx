@@ -24,7 +24,7 @@ import VirusTotalFilePanel from './components/VirusTotalFilePanel'
 import { ErrorState } from './components/ui'
 import Scene3D from './components/Scene3D'
 import Cursor from './components/Cursor'
-import ScoringBoard from './components/ScoringBoard'
+import ScanScoringBoard from './components/ScanScoringBoard'
 
 const VIEW_TITLES: Record<ViewKey, string> = {
   overview: 'Overview',
@@ -48,6 +48,7 @@ export default function App() {
   const [scans, setScans] = useState<ScanSummary[]>([])
   const [scansError, setScansError] = useState<string | null>(null)
   const [scansLoading, setScansLoading] = useState(true)
+  const [riskSummaries, setRiskSummaries] = useState<Record<string, RiskSummary | null>>({})
 
   // Selected-scan data.
   const [scanId, setScanId] = useState<string | null>(null)
@@ -72,6 +73,23 @@ export default function App() {
       .then((r) => {
         setScans(r.scans)
         setScansError(null)
+        // Fetch risk summaries for all scans
+        const riskPromise = r.scans.map((scan) =>
+          api.getRiskSummary(scan.id).then((rs) => {
+            setRiskSummaries((prev) => ({
+              ...prev,
+              [scan.id]: rs,
+            }))
+          }).catch(() => {
+            setRiskSummaries((prev) => ({
+              ...prev,
+              [scan.id]: null,
+            }))
+          })
+        )
+        Promise.all(riskPromise).then(() => {
+          setScansLoading(false)
+        })
       })
       .catch((e: unknown) => setScansError(e instanceof Error ? e.message : String(e)))
       .finally(() => setScansLoading(false))
@@ -312,15 +330,21 @@ export default function App() {
         )}
 
         {view === 'overview' && (
-          <ScanOverview
-            metrics={metrics}
-            latestScans={scans}
-            loading={scansLoading}
-            error={scansError}
-            onRetry={refreshScans}
-            onOpenScan={openScan}
-            onSelect={setView}
-          />
+          <div className="space-y-6">
+            <ScanOverview
+              metrics={metrics}
+              latestScans={scans}
+              loading={scansLoading}
+              error={scansError}
+              onRetry={refreshScans}
+              onOpenScan={openScan}
+              onSelect={setView}
+            />
+            <ScanScoringBoard
+              scans={scans}
+              riskSummaries={riskSummaries}
+            />
+          </div>
         )}
 
         {view === 'new-scan' && (
@@ -401,8 +425,7 @@ export default function App() {
               }
               onRetry={retryScanDetail}
             />
-            <ScoringBoard findings={findings} />
-          </div>
+            </div>
         )}
 
         {view === 'inventory' && (
